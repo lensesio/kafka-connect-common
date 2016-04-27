@@ -1,0 +1,170 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+        classpath 'com.github.maiflai:gradle-scalatest:0.9'
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.1'
+        classpath 'org.hibernate.build.gradle:gradle-maven-publish-auth:2.0.1'
+    }
+}
+
+apply plugin: 'signing'
+apply plugin: 'maven-publish-auth'
+apply plugin: 'io.codearte.nexus-staging'
+
+allprojects {
+    version = '0.1'
+    group = 'com.datamountaineer.streamreactor'
+    apply plugin: 'java'
+    apply plugin: 'scala'
+    apply plugin: 'maven'
+    apply plugin: 'com.github.maiflai.scalatest'
+    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'distribution'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    ext {
+        scalaMajorVersion = '2.11'
+        scala = '2.11.7'
+        scalaCheck = '1.11.1'
+        scalaTest = '2.2.6'
+        junit = '4.11'
+        confluentVersion = '2.0.1'
+        scalaLoggingVersion = '2.1.2'
+        kafkaVersion = '0.9.0.1'
+        mockitoVersion = '1.10.19'
+        jacksonDatabind = '2.7.0'
+        avroVersion = '1.8.0'
+        jacksonxmlVersion = '2.6.5'
+        slf4jVersion = "1.7.7"
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url "http://packages.confluent.io/maven/" }
+        maven { url "http://repo.typesafe.com/typesafe/releases/" }
+    }
+
+    dependencies {
+        compile "org.scala-lang:scala-library:$scala"
+        compile "org.scala-lang:scala-compiler:$scala"
+        compile "org.apache.kafka:connect-json:$kafkaVersion"
+        compile ("io.confluent:kafka-connect-avro-converter:$confluentVersion") {
+            exclude group: "org.jboss.netty", module: "netty"
+        }
+        testCompile "org.mockito:mockito-all:$mockitoVersion"
+        testCompile "org.scalacheck:scalacheck_$scalaMajorVersion:$scalaCheck"
+        testCompile "org.scalatest:scalatest_$scalaMajorVersion:$scalaTest"
+        testCompile "junit:junit:$junit"
+        testRuntime 'org.pegdown:pegdown:1.1.0'
+    }
+
+    test {
+        maxParallelForks = 1
+        minHeapSize '256m'
+        maxHeapSize '2048m'
+        systemProperty 'truststore', projectDir.canonicalPath + "/src/test/resources/stc_truststore.jks"
+        systemProperty 'keystore', projectDir.canonicalPath + "/src/test/resources/stc_keystore.jks"
+    }
+
+    task testJar(type: Jar, dependsOn: testClasses) {
+        baseName = "test-${project.archivesBaseName}"
+        from sourceSets.test.output
+    }
+
+    configurations {
+        tests
+    }
+
+    artifacts {
+        tests testJar
+    }
+
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task scaladocJar(type: Jar) {
+        classifier = 'scaladoc'
+        from '../LICENSE'
+        from scaladoc
+    }
+
+    tasks.withType(Tar) {
+        compression Compression.GZIP
+        extension = 'tgz'
+    }
+
+    task compile(dependsOn: 'compileScala')
+
+    task fatJar(dependsOn : ['test', 'shadowJar'])
+    task fatJarNoTest(dependsOn : 'shadowJar')
+
+    javadoc.dependsOn scaladoc
+
+
+    // OSSRH publication
+    if (project.hasProperty('release')) {
+        uploadArchives {
+            repositories {
+                signing {
+                    required { shouldSign }
+                    sign configurations.archives
+
+                    mavenDeployer {
+                        // POM signature
+                        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+                        // Target repository
+                        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                            //authentication(userName: ossrhUser, password: ossrhPassword)
+                        }
+                        pom.project {
+                            name project.name
+                            description project.description
+                            packaging 'jar'
+                            url 'https://github.com/datamountaineer/kafka-connect-common'
+
+                            scm {
+                                connection 'scm:git:https://github.com/datamountaineer/kafka-connect-common.git'
+                                developerConnection 'scm:git:git@github.com:datamountaineer/kafka-connect-common.git'
+                                url 'https://github.com/datamountaineer/kafka-connect-common.git'
+                            }
+
+                            licenses {
+                                license {
+                                    name 'Apache License 2.0'
+                                    url 'http://www.apache.org/licenses/LICENSE-2.0.html'
+                                    distribution 'repo'
+                                }
+                            }
+
+                            developers {
+                                developer {
+                                    id = 'andrewstevenson'
+                                    name = 'Andrew Stevenson'
+                                    email = 'andrew@datamountaineer.com'
+                                }
+                                developer {
+                                    id = 'stheppi'
+                                    name = 'Stefan Bocutiu'
+                                    email = 'stefan@datamountaineer.com'
+                                }
+                                developer {
+                                    id = 'Antwnis'
+                                    name = 'Antonios Chalkiopoulos'
+                                    email = 'antonios@datamountaineer.com'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
