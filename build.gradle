@@ -5,25 +5,22 @@ buildscript {
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
         classpath 'com.github.maiflai:gradle-scalatest:0.9'
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.1'
-        classpath 'org.hibernate.build.gradle:gradle-maven-publish-auth:2.0.1'
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
     }
 }
 
 apply plugin: 'signing'
-apply plugin: 'maven-publish-auth'
 apply plugin: 'io.codearte.nexus-staging'
 
 allprojects {
+    group = 'com.datamountaineer'
     version = '0.1'
-    group = 'com.datamountaineer.streamreactor'
+    description = "kafka-connect-common"
     apply plugin: 'java'
     apply plugin: 'scala'
     apply plugin: 'maven'
     apply plugin: 'com.github.maiflai.scalatest'
     apply plugin: 'com.github.johnrengelman.shadow'
-    apply plugin: 'distribution'
-
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
@@ -41,6 +38,7 @@ allprojects {
         avroVersion = '1.8.0'
         jacksonxmlVersion = '2.6.5'
         slf4jVersion = "1.7.7"
+        guavaVersion = "19.0"
     }
 
     repositories {
@@ -56,6 +54,8 @@ allprojects {
         compile ("io.confluent:kafka-connect-avro-converter:$confluentVersion") {
             exclude group: "org.jboss.netty", module: "netty"
         }
+
+        compile "com.google.guava:guava:$guavaVersion"
         testCompile "org.mockito:mockito-all:$mockitoVersion"
         testCompile "org.scalacheck:scalacheck_$scalaMajorVersion:$scalaCheck"
         testCompile "org.scalatest:scalatest_$scalaMajorVersion:$scalaTest"
@@ -80,10 +80,6 @@ allprojects {
         tests
     }
 
-    artifacts {
-        tests testJar
-    }
-
     task sourcesJar(type: Jar) {
         classifier = 'sources'
         from sourceSets.main.allSource
@@ -95,75 +91,88 @@ allprojects {
         from scaladoc
     }
 
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from javadoc
+    }
+
     tasks.withType(Tar) {
         compression Compression.GZIP
         extension = 'tgz'
     }
 
-    task compile(dependsOn: 'compileScala')
 
+    artifacts {
+        archives javadocJar, scaladocJar, sourcesJar
+    }
+
+    task compile(dependsOn: 'compileScala')
     task fatJar(dependsOn : ['test', 'shadowJar'])
     task fatJarNoTest(dependsOn : 'shadowJar')
 
     javadoc.dependsOn scaladoc
 
+    signing {
+        sign configurations.archives
+    }
 
     // OSSRH publication
     if (project.hasProperty('release')) {
         uploadArchives {
             repositories {
-                signing {
-                    required { shouldSign }
-                    sign configurations.archives
+                mavenDeployer {
+                    // POM signature
+                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+                    // Target repository
+                    repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                        authentication(userName: ossrhUsername, password: ossrhPassword)
+                    }
+                    pom.project {
+                        name project.name
+                        description project.description
+                        packaging 'jar'
+                        url 'https://github.com/datamountaineer/kafka-connect-common'
 
-                    mavenDeployer {
-                        // POM signature
-                        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-                        // Target repository
-                        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                            //authentication(userName: ossrhUser, password: ossrhPassword)
+                        scm {
+                            connection 'scm:git:https://github.com/datamountaineer/kafka-connect-common.git'
+                            developerConnection 'scm:git:git@github.com:datamountaineer/kafka-connect-common.git'
+                            url 'https://github.com/datamountaineer/kafka-connect-common.git'
                         }
-                        pom.project {
-                            name project.name
-                            description project.description
-                            packaging 'jar'
-                            url 'https://github.com/datamountaineer/kafka-connect-common'
 
-                            scm {
-                                connection 'scm:git:https://github.com/datamountaineer/kafka-connect-common.git'
-                                developerConnection 'scm:git:git@github.com:datamountaineer/kafka-connect-common.git'
-                                url 'https://github.com/datamountaineer/kafka-connect-common.git'
+                        licenses {
+                            license {
+                                name 'Apache License 2.0'
+                                url 'http://www.apache.org/licenses/LICENSE-2.0.html'
+                                distribution 'repo'
                             }
+                        }
 
-                            licenses {
-                                license {
-                                    name 'Apache License 2.0'
-                                    url 'http://www.apache.org/licenses/LICENSE-2.0.html'
-                                    distribution 'repo'
-                                }
+                        developers {
+                            developer {
+                                id = 'andrewstevenson'
+                                name = 'Andrew Stevenson'
+                                email = 'andrew@datamountaineer.com'
                             }
-
-                            developers {
-                                developer {
-                                    id = 'andrewstevenson'
-                                    name = 'Andrew Stevenson'
-                                    email = 'andrew@datamountaineer.com'
-                                }
-                                developer {
-                                    id = 'stheppi'
-                                    name = 'Stefan Bocutiu'
-                                    email = 'stefan@datamountaineer.com'
-                                }
-                                developer {
-                                    id = 'Antwnis'
-                                    name = 'Antonios Chalkiopoulos'
-                                    email = 'antonios@datamountaineer.com'
-                                }
+                            developer {
+                                id = 'stheppi'
+                                name = 'Stefan Bocutiu'
+                                email = 'stefan@datamountaineer.com'
+                            }
+                            developer {
+                                id = 'Antwnis'
+                                name = 'Antonios Chalkiopoulos'
+                                email = 'antonios@datamountaineer.com'
                             }
                         }
                     }
                 }
             }
+        }
+
+        nexusStaging {
+            packageGroup = project.getGroup()
+            username = ossrhUsername
+            password = ossrhPassword
         }
     }
 }

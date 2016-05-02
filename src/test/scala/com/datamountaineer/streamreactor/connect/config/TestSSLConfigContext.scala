@@ -1,8 +1,7 @@
-package com.datamountaineer.streamreactor.connect
+package com.datamountaineer.streamreactor.connect.config
 
 import javax.net.ssl.{KeyManager, SSLContext, TrustManager}
 
-import com.datamountaineer.streamreactor.connect.config.{SSLConfig, SSLConfigContext}
 import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
 
 /**

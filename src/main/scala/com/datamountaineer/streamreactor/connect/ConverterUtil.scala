@@ -5,6 +5,7 @@ import io.confluent.connect.avro.AvroData
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.connect.json.{JsonConverter, JsonDeserializer}
 import org.apache.kafka.connect.sink.SinkRecord
+import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.storage.Converter
 
 import scala.collection.JavaConverters._
@@ -27,6 +28,17 @@ trait ConverterUtil {
     * @return A json string for the payload of the record
     * */
   def convertValueToJson(record: SinkRecord) : JsonNode = {
+    val converted: Array[Byte] = jsonConverter.fromConnectData(record.topic(), record.valueSchema(), record.value())
+    deserializeToJson(record.topic(), payload = converted)
+  }
+
+  /**
+    * Convert a SourceRecords value to a Json string using Kafka Connects deserializer
+    *
+    * @param record A SinkRecord to extract the payload value from
+    * @return A json string for the payload of the record
+    * */
+  def convertSourceValueToJson(record: SourceRecord) : JsonNode = {
     val converted: Array[Byte] = jsonConverter.fromConnectData(record.topic(), record.valueSchema(), record.value())
     deserializeToJson(record.topic(), payload = converted)
   }

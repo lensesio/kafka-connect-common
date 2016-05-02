@@ -1,4 +1,6 @@
-package com.datamountaineer.streamreactor.connect
+package com.datamountaineer.streamreactor.connect.config
+
+import com.datamountaineer.streamreactor.connect.{ConverterUtil, TestUtilsBase}
 
 /**
   * Created by andrew@datamountaineer.com on 29/02/16. 

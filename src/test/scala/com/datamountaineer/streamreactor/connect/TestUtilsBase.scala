@@ -1,16 +1,24 @@
 package com.datamountaineer.streamreactor.connect
 
+import java.util
+import java.util.Collections
+
 import org.apache.avro.generic.{GenericData, GenericRecord}
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.apache.kafka.connect.sink.SinkRecord
-import org.scalatest.{BeforeAndAfter, FunSuite, Matchers, WordSpec}
+import org.apache.kafka.connect.source.SourceTaskContext
+import org.apache.kafka.connect.storage.OffsetStorageReader
+import org.mockito.Mockito._
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
+import scala.collection.JavaConverters._
 
 /**
   * Created by andrew@datamountaineer.com on 29/02/16. 
   * stream-reactor
   */
 
-trait TestUtilsBase extends WordSpec with Matchers with BeforeAndAfter {
+trait TestUtilsBase extends WordSpec with Matchers with BeforeAndAfter with MockitoSugar {
   val TOPIC = "sink_test"
   val VALUE_JSON_STRING="{\"id\":\"sink_test-1-1\",\"int_field\":1,\"long_field\":1,\"string_field\":\"foo\"}"
   val KEY="topic_key_1"
@@ -52,5 +60,30 @@ trait TestUtilsBase extends WordSpec with Matchers with BeforeAndAfter {
     val schema = createSchema
     val record: Struct = createRecord(schema, ID)
     new SinkRecord(TOPIC, 1, Schema.STRING_SCHEMA, KEY.toString, schema, record, 1)
+  }
+
+  def getSourceTaskContext(lookupPartitionKey: String, offsetValue: String, offsetColumn : String, table : String) = {
+    /**
+      * offset holds a map of map[string, something],map[identifier, value]
+      *
+      * map(map(assign.import.table->table1) -> map("my_timeuuid"->"2013-01-01 00:05+0000")
+      */
+
+    //set up partition
+    val partition: util.Map[String, String] = Collections.singletonMap(lookupPartitionKey, table)
+    //as a list to search for
+    val partitionList: util.List[util.Map[String, String]] = List(partition).asJava
+    //set up the offset
+    val offset: util.Map[String, Object] = (Collections.singletonMap(offsetColumn,offsetValue ))
+    //create offsets to initialize from
+    val offsets :util.Map[util.Map[String, String],util.Map[String, Object]] = Map(partition -> offset).asJava
+
+    //mock out reader and task context
+    val taskContext = mock[SourceTaskContext]
+    val reader = mock[OffsetStorageReader]
+    when(reader.offsets(partitionList)).thenReturn(offsets)
+    when(taskContext.offsetStorageReader()).thenReturn(reader)
+
+    taskContext
   }
 }
