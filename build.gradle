@@ -19,7 +19,7 @@ apply plugin: 'net.researchgate.release'
 
 allprojects {
     group = 'com.datamountaineer'
-    version = '0.1'
+    version = version
     description = "kafka-connect-common"
     apply plugin: 'java'
     apply plugin: 'scala'
