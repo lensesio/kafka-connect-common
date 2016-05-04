@@ -1,16 +1,21 @@
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
     }
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
         classpath 'com.github.maiflai:gradle-scalatest:0.9'
         classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
+        classpath 'net.researchgate:gradle-release:2.3.4'
     }
 }
 
 apply plugin: 'signing'
 apply plugin: 'io.codearte.nexus-staging'
+apply plugin: 'net.researchgate.release'
 
 allprojects {
     group = 'com.datamountaineer'
@@ -38,7 +43,7 @@ allprojects {
         avroVersion = '1.8.0'
         jacksonxmlVersion = '2.6.5'
         slf4jVersion = "1.7.7"
-        guavaVersion = "19.0"
+        guavaVersion = "18.0"
     }
 
     repositories {

@@ -32,16 +32,16 @@ object OffsetHandler {
     * @param lookupPartitionKey The key for this partition .i.e. cassandra.assigned.tables.
     * @param partitionKeyValue The value for the partition .i.e. table1.
     * @param lookupOffsetCol The offset columns to look for. For example the timestamp column from table1.
-    * @return The last stored value for the framework.
+    * @return The optional T of last stored value for the framework.
     * */
-  def recoverOffset(offsets: util.Map[util.Map[String, String],util.Map[String, Object]],
+  def recoverOffset[T](offsets: util.Map[util.Map[String, String],util.Map[String, Object]],
                     lookupPartitionKey: String,
                     partitionKeyValue: String,
                     lookupOffsetCol: String
-                   ) : Option[Object] = {
+                   ) : Option[T] = {
     val partition = Collections.singletonMap(lookupPartitionKey, partitionKeyValue)
     val offset = offsets.get(partition)
-    if (offset != null) Some(offset.get(lookupOffsetCol)) else None
+    if (offset != null) Some(offset.get(lookupOffsetCol).asInstanceOf[T]) else None
   }
 }
 

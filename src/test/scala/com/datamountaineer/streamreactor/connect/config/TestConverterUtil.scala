@@ -1,6 +1,7 @@
 package com.datamountaineer.streamreactor.connect.config
 
-import com.datamountaineer.streamreactor.connect.{ConverterUtil, TestUtilsBase}
+import com.datamountaineer.streamreactor.connect.TestUtilsBase
+import com.datamountaineer.streamreactor.connect.schemas.ConverterUtil
 
 /**
   * Created by andrew@datamountaineer.com on 29/02/16. 

@@ -1,4 +1,4 @@
-package com.datamountaineer.streamreactor.connect.config
+package com.datamountaineer.streamreactor.connect.schemas
 
 import org.apache.kafka.common.config.ConfigException
 

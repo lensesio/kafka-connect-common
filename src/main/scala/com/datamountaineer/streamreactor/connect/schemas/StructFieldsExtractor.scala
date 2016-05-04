@@ -1,4 +1,4 @@
-package com.datamountaineer.streamreactor.connect
+package com.datamountaineer.streamreactor.connect.schemas
 
 import org.apache.kafka.connect.data.{Field, Schema, Struct}
 

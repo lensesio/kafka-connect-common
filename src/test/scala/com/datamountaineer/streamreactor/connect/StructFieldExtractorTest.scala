@@ -1,5 +1,6 @@
 package com.datamountaineer.streamreactor.connect
 
+import com.datamountaineer.streamreactor.connect.schemas.StructFieldsExtractor
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.scalatest.{Matchers, WordSpec}
 

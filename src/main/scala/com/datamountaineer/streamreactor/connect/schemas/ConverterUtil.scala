@@ -1,4 +1,4 @@
-package com.datamountaineer.streamreactor.connect
+package com.datamountaineer.streamreactor.connect.schemas
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.confluent.connect.avro.AvroData
