@@ -130,7 +130,7 @@ allprojects {
                     beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
                     // Target repository
                     repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                        authentication(userName: ossrhUsername, password: ossrhPassword)
+                  //      authentication(userName: ossrhUsername, password: ossrhPassword)
                     }
                     pom.project {
                         name project.name
@@ -174,11 +174,11 @@ allprojects {
             }
         }
 
-        nexusStaging {
-            packageGroup = project.getGroup()
-            username = ossrhUsername
-            password = ossrhPassword
-        }
+//        nexusStaging {
+//            packageGroup = project.getGroup()
+//            username = ossrhUsername
+//            password = ossrhPassword
+//        }
     }
 }
 
