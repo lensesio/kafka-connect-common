@@ -15,7 +15,6 @@ import scala.collection.JavaConverters._
   */
 class TestOffsetHandler extends WordSpec with Matchers with MockitoSugar with TestUtilsBase {
   "should return an offset" in {
-
     val lookupPartitionKey = "test_lk_key"
     val offsetValue = "2013-01-01 00:05+0000"
     val offsetColumn = "my_timeuuid_col"
@@ -25,7 +24,7 @@ class TestOffsetHandler extends WordSpec with Matchers with MockitoSugar with Te
     //check we can read it back
     val tables = List(table)
     val offsetsRecovered = OffsetHandler.recoverOffsets(lookupPartitionKey, tables.asJava, taskContext)
-    val offsetRecovered = OffsetHandler.recoverOffset(offsetsRecovered, lookupPartitionKey, table, offsetColumn)
-    offsetRecovered.get shouldBe(offsetValue)
+    val offsetRecovered = OffsetHandler.recoverOffset[String](offsetsRecovered, lookupPartitionKey, table, offsetColumn)
+    offsetRecovered.get shouldBe (offsetValue)
   }
 }
