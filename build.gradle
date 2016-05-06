@@ -55,6 +55,7 @@ allprojects {
     dependencies {
         compile "org.scala-lang:scala-library:$scala"
         compile "org.scala-lang:scala-compiler:$scala"
+        compile "com.typesafe.scala-logging:scala-logging-slf4j_$scalaMajorVersion:$scalaLoggingVersion"
         compile "org.apache.kafka:connect-json:$kafkaVersion"
         compile ("io.confluent:kafka-connect-avro-converter:$confluentVersion") {
             exclude group: "org.jboss.netty", module: "netty"

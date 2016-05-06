@@ -41,7 +41,11 @@ object OffsetHandler {
                    ) : Option[T] = {
     val partition = Collections.singletonMap(lookupPartitionKey, partitionKeyValue)
     val offset = offsets.get(partition)
-    if (offset != null) Some(offset.get(lookupOffsetCol).asInstanceOf[T]) else None
+    if (offset != null && offset.get(lookupOffsetCol) != null) {
+      Some(offset.get(lookupOffsetCol).asInstanceOf[T])
+    } else {
+      None
+    }
   }
 }
 
