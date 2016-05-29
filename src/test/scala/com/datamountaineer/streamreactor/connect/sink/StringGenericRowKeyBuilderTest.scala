@@ -1,5 +1,6 @@
 package com.datamountaineer.streamreactor.connect.sink
 
+import com.datamountaineer.streamreactor.connect.rowkeys.StringGenericRowKeyBuilder
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.sink.SinkRecord
 import org.scalatest.{Matchers, WordSpec}
@@ -15,7 +16,7 @@ class StringGenericRowKeyBuilderTest extends WordSpec with Matchers {
       val sinkRecord = new SinkRecord(topic, partition, Schema.INT32_SCHEMA, 345, Schema.STRING_SCHEMA, "", offset)
 
       val keyBuilder = new StringGenericRowKeyBuilder()
-      val expected = Seq(topic, partition, offset).mkString(".")
+      val expected = Seq(topic, partition, offset).mkString("|")
       keyBuilder.build(sinkRecord) shouldBe expected
     }
   }

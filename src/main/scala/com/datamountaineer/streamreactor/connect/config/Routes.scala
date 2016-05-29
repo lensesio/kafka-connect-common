@@ -14,14 +14,15 @@
   * limitations under the License.
   **/
 
-package com.datamountaineer.streamreactor.connect.sink
-
-import org.apache.kafka.connect.sink.SinkRecord
-
+package com.datamountaineer.streamreactor.connect.config
 
 /**
-  * Defines the construct for inserting a new row for the connect sink record
+  * Created by andrew@datamountaineer.com on 19/05/16. 
+  * kafka-connect-common
   */
-trait DbWriter extends AutoCloseable {
-  def write(records: Seq[SinkRecord]): Unit
-}
+case class RouteMapping(source: String,
+                        target: String,
+                        allFields : Boolean,
+                        fieldMappings: List[Field] = List.empty[Field])
+
+case class Field(name: String, target: String, isPrimaryKey: Boolean = false)

@@ -1,7 +1,6 @@
-package com.datamountaineer.streamreactor.connect.config
+package com.datamountaineer.streamreactor.connect.schemas
 
 import com.datamountaineer.streamreactor.connect.TestUtilsBase
-import com.datamountaineer.streamreactor.connect.schemas.ConverterUtil
 
 /**
   * Created by andrew@datamountaineer.com on 29/02/16. 
@@ -26,7 +25,7 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
 
     "Should convert a SinkRecord Key to avro" in {
       val testRecord = getTestRecord
-      val avro = convertToGenericAvro(testRecord)
+      val avro = convertValueToGenericAvro(testRecord)
       val testAvro = buildAvro()
       avro.get("id") shouldBe testAvro.get("id")
       avro.get("int_field") shouldBe testAvro.get("int_field")

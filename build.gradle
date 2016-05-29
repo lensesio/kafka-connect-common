@@ -44,6 +44,7 @@ allprojects {
         jacksonxmlVersion = '2.6.5'
         slf4jVersion = "1.7.7"
         guavaVersion = "18.0"
+        hbaseClientVersion = "1.2.0"
     }
 
     repositories {
@@ -59,6 +60,10 @@ allprojects {
         compile "org.apache.kafka:connect-json:$kafkaVersion"
         compile ("io.confluent:kafka-connect-avro-converter:$confluentVersion") {
             exclude group: "org.jboss.netty", module: "netty"
+        }
+
+        compile("org.apache.hbase:hbase-client:$hbaseClientVersion") {
+            exclude group: "javax.ws.rs", module: "jsr311-api"
         }
 
         compile "com.google.guava:guava:$guavaVersion"

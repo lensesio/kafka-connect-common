@@ -1,12 +1,13 @@
 package com.datamountaineer.streamreactor.connect.sink
 
+import com.datamountaineer.streamreactor.connect.rowkeys.StringSinkRecordKeyBuilder
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.sink.SinkRecord
 import org.scalatest.{Matchers, WordSpec}
 
 
-class SinkRecordKeyStringKeyBuilderTest extends WordSpec with Matchers {
-  val keyRowKeyBuilder = new SinkRecordKeyStringKeyBuilder()
+class StringSinkRecordKeyBuilderTest extends WordSpec with Matchers {
+  val keyRowKeyBuilder = new StringSinkRecordKeyBuilder()
 
   "SinkRecordKeyStringKeyBuilder" should {
 

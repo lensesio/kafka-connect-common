@@ -1,4 +1,20 @@
-package com.datamountaineer.streamreactor.connect.sink
+/**
+  * Copyright 2016 Datamountaineer.
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+  *
+  * http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  **/
+
+package com.datamountaineer.streamreactor.connect.rowkeys
 
 import org.apache.kafka.connect.data.{Schema, Struct}
 import org.apache.kafka.connect.sink.SinkRecord
@@ -17,7 +33,7 @@ trait StringKeyBuilder {
   *
   * @param keyDelimiter Row key delimiter
   */
-class StringGenericRowKeyBuilder(keyDelimiter: String = ".") extends StringKeyBuilder {
+class StringGenericRowKeyBuilder(keyDelimiter: String = "|") extends StringKeyBuilder {
 
   override def build(record: SinkRecord): String = {
     Seq(record.topic(), record.kafkaPartition(), record.kafkaOffset().toString).mkString(keyDelimiter)
@@ -27,7 +43,7 @@ class StringGenericRowKeyBuilder(keyDelimiter: String = ".") extends StringKeyBu
 /**
   * Creates a key based on the connect SinkRecord instance key. Only connect Schema primitive types are handled
   */
-class SinkRecordKeyStringKeyBuilder extends StringKeyBuilder {
+class StringSinkRecordKeyBuilder extends StringKeyBuilder {
   override def build(record: SinkRecord): String = {
     val `type` = record.keySchema().`type`()
     require(`type`.isPrimitive, "The SinkRecord key schema is not a primitive type")
@@ -36,7 +52,6 @@ class SinkRecordKeyStringKeyBuilder extends StringKeyBuilder {
       case "INT8" | "INT16" | "INT32" | "INT64" | "FLOAT32" | "FLOAT64" | "BOOLEAN" | "STRING" | "BYTES" => record.key().toString
       case other => throw new IllegalArgumentException(s"$other is not supported by the ${getClass.getName}")
     }
-
   }
 }
 
@@ -46,8 +61,8 @@ class SinkRecordKeyStringKeyBuilder extends StringKeyBuilder {
   * @param keys The key to build
   * @param keyDelimiter Row key delimiter
   */
-case class StructFieldsStringKeyBuilder(keys: Seq[String],
-                                        keyDelimiter: String = ".") extends StringKeyBuilder {
+case class StringStructFieldsStringKeyBuilder(keys: Seq[String],
+                                              keyDelimiter: String = ".") extends StringKeyBuilder {
   private val availableSchemas = Set(
     Schema.BOOLEAN_SCHEMA, Schema.OPTIONAL_BOOLEAN_SCHEMA,
     Schema.BYTES_SCHEMA, Schema.OPTIONAL_BYTES_SCHEMA,

@@ -1,11 +1,12 @@
 package com.datamountaineer.streamreactor.connect.sink
 
+import com.datamountaineer.streamreactor.connect.rowkeys.StringStructFieldsStringKeyBuilder
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.apache.kafka.connect.sink.SinkRecord
 import org.scalatest.{Matchers, WordSpec}
 
 
-class StructFieldsStringKeyBuilderTest extends WordSpec with Matchers {
+class StringStructFieldsStringKeyBuilderTest extends WordSpec with Matchers {
   "StructFieldsStringKeyBuilder" should {
     "raise an exception if the field is not present in the struct" in {
       intercept[IllegalArgumentException] {
@@ -17,7 +18,7 @@ class StructFieldsStringKeyBuilderTest extends WordSpec with Matchers {
         val struct = new Struct(schema).put("firstName", "Alex").put("age", 30)
 
         val sinkRecord = new SinkRecord("sometopic", 1, null, null, schema, struct, 1)
-        StructFieldsStringKeyBuilder(Seq("threshold")).build(sinkRecord)
+        StringStructFieldsStringKeyBuilder(Seq("threshold")).build(sinkRecord)
       }
     }
 
@@ -30,7 +31,7 @@ class StructFieldsStringKeyBuilderTest extends WordSpec with Matchers {
       val struct = new Struct(schema).put("firstName", "Alex").put("age", 30)
 
       val sinkRecord = new SinkRecord("sometopic", 1, null, null, schema, struct, 1)
-      StructFieldsStringKeyBuilder(Seq("firstName")).build(sinkRecord) shouldBe "Alex"
+      StringStructFieldsStringKeyBuilder(Seq("firstName")).build(sinkRecord) shouldBe "Alex"
     }
 
     "create the row key based on more thant one field in the struct" in {
@@ -42,7 +43,7 @@ class StructFieldsStringKeyBuilderTest extends WordSpec with Matchers {
       val struct = new Struct(schema).put("firstName", "Alex").put("age", 30)
 
       val sinkRecord = new SinkRecord("sometopic", 1, null, null, schema, struct, 1)
-      StructFieldsStringKeyBuilder(Seq("firstName", "age")).build(sinkRecord) shouldBe "Alex.30"
+      StringStructFieldsStringKeyBuilder(Seq("firstName", "age")).build(sinkRecord) shouldBe "Alex.30"
     }
   }
 }
