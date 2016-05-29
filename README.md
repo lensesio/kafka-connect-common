@@ -8,14 +8,14 @@ Kafka Connect Common is in Maven, include it in your connector.
 <dependency>
 	<groupId>com.datamountaineer</groupId>
 	<artifactId>kafka-connect-common</artifactId>
-	<version>0.2</version>
+	<version>0.2.2</version>
 </dependency>
 
 #sbt
-libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "0.2"
+libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "0.2.2"
 
 #gradle
-'com.datamountaineer:kafka-connect-common:0.1'
+'com.datamountaineer:kafka-connect-common:0.2.2'
 ```
 
 
