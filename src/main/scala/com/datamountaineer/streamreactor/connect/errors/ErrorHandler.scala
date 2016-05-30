@@ -19,9 +19,8 @@ trait ErrorHandler extends StrictLogging {
     errorTracker = Some(ErrorTracker(maxRetries, maxRetries, "", new Date(), errorPolicy))
   }
 
-  def doTry[A](t :Try[A]) : Option[A] = {
+  def handleTry[A](t :Try[A]) : Option[A] = {
     require(errorTracker.isDefined, "ErrorTracker is not set call. Initialize.")
-
     t
     match  {
       case Success(s) => {
@@ -49,7 +48,11 @@ trait ErrorHandler extends StrictLogging {
   }
 
   private def decrementErrorTracker(errorTracker: ErrorTracker, msg : String) : ErrorTracker = {
-    ErrorTracker(errorTracker.retries - 1, errorTracker.maxRetries, msg, new Date(), errorTracker.policy)
+    if (errorTracker.maxRetries == -1) {
+      ErrorTracker(errorTracker.retries, errorTracker.maxRetries, msg, new Date(), errorTracker.policy)
+    } else {
+      ErrorTracker(errorTracker.retries - 1, errorTracker.maxRetries, msg, new Date(), errorTracker.policy)
+    }
   }
 
   private def handleError(f : Throwable, retries: Int, policy: ErrorPolicy): Unit = {
