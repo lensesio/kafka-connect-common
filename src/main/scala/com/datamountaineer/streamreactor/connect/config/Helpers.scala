@@ -20,7 +20,7 @@ import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.apache.kafka.common.config.ConfigException
 
 /**
-  * Created by andrew@datamountaineer.com on 13/05/16. 
+  * Created by andrew@datamountaineer.com on 13/05/16.
   * kafka-connect-common
   */
 
@@ -38,89 +38,6 @@ object Helpers extends StrictLogging {
     tableTopicParser(input).filter({ case (k, v) => filterTable.contains(k)})
   }
 
-  /**
-    * Parser a route map {topic:table;f1->,f2->col} or {topic:table;*}
-    *
-    * @param routeMapping The route map string to parse form a sinks configuration.
-    * @return A Export map containing the topic to table mapping and field to columns
-    * */
-  def mappingParser(routeMapping : String, pks: Option[String] = None) : List[RouteMapping] = {
-
-    val pksMap = if (pks.isDefined && pks.get != null) pKParser(pks.get) else Map.empty[String, List[String]]
-
-    //break into map of mappings
-    val mappings = routeMapping.split("\\}")
-      .toList
-      .map(s => s.replace(",{", "").replace("{", "").replace("}", "").trim())
-
-    //for each mapping extract the table to topic and field mappings
-    mappings.map(m => {
-      //split into two, table/topic and fields
-      val topicField = m.split(";")
-
-      require(topicField.size.equals(2), s"Invalid input while parsing $routeMapping, No topic routing or field mappings" +
-        s". Required format is {source:target;field->target}. * from all fields")
-
-      //parse table topics
-      val tt = splitter(topicField(0), ":")
-
-      require(tt.size > 0, s"Invalid input while parsing $m. No source to target mapping found. Required format is " +
-        s"{source:target;field->target}. * from all fields")
-      val source = tt.head._1
-      val target = tt.head._2
-
-      //now fields, is all fields?
-      if (topicField(1).equals("*")) {
-        logger.info(s"All fields to be selected from the source $source")
-        //add primary keys
-        val fields = if (pksMap.contains(source)){
-          val pks = pksMap.get(source).get
-          logger.info(s"Adding primary key field ${pks.mkString(",")}")
-          pks.map(f=>Field(f, f, true))
-        } else {
-          List.empty
-        }
-        RouteMapping(source = source, target = target, allFields = true, fieldMappings = fields)
-      } else {
-        //split field to target field
-        val fm: Map[String, String] = splitter(topicField(1), "->")
-        logger.info(s"Applying fields selection ${fm.mkString(",")}")
-
-        //check primary keys are in selection
-        if (!pks.isEmpty) {
-          if (pksMap.contains(source)) {
-            val pks = pksMap.get(source).get
-            pks.foreach(p=> {
-              if (!fm.contains(p)) {
-                throw new ConfigException(s"Primary key [$p] specified but is not in the field selection $m")
-              }
-            })
-          }
-        }
-
-        ///add any primary keys
-        val fields = fm.map(
-          {
-            case (name, target) => {
-              if (pksMap.isEmpty) {
-                Field(name, target)
-              } else {
-                //we have a pk, see if defined and set as primary
-                if (pksMap.contains(source)) {
-                  val pks = pksMap.get(source).get
-                  Field(name, target, pks.contains(name))
-                } else {
-                  Field(name, target)
-                }
-              }
-            }
-          }
-        ).toList
-
-        RouteMapping(source = source, target = target, allFields = false, fieldMappings = fields)
-      }
-    })
-  }
 
   //{table:f1,f2}
   def pKParser(input : String) : Map[String, List[String]] = {
@@ -157,7 +74,7 @@ object Helpers extends StrictLogging {
       .map(c => c.split(delimiter))
       .map(a => {if (a.length == 1) (a(0), a(0)) else (a(0), a(1)) }).toMap
   }
-  
+
   /**
     * Break a comma and colon separated string into a map of table to topic or topic to table
     *

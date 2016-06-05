@@ -17,7 +17,7 @@
 package com.datamountaineer.streamreactor.connect.config
 
 /**
-  * Created by andrew@datamountaineer.com on 19/05/16. 
+  * Created by andrew@datamountaineer.com on 19/05/16.
   * kafka-connect-common
   */
 case class RouteMapping(source: String,

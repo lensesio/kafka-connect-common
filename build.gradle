@@ -45,9 +45,11 @@ allprojects {
         slf4jVersion = "1.7.7"
         guavaVersion = "18.0"
         hbaseClientVersion = "1.2.0"
+        dataMountaineerCQLVersion = "1.0.0-SNAPSHOT"
     }
 
     repositories {
+        //mavenLocal()
         mavenCentral()
         maven { url "http://packages.confluent.io/maven/" }
         maven { url "http://repo.typesafe.com/typesafe/releases/" }
@@ -58,6 +60,7 @@ allprojects {
         compile "org.scala-lang:scala-compiler:$scala"
         compile "com.typesafe.scala-logging:scala-logging-slf4j_$scalaMajorVersion:$scalaLoggingVersion"
         compile "org.apache.kafka:connect-json:$kafkaVersion"
+       // compile "com.datamountaineer:kafka-connector-query-language:$dataMountaineerCQLVersion"
         compile ("io.confluent:kafka-connect-avro-converter:$confluentVersion") {
             exclude group: "org.jboss.netty", module: "netty"
         }

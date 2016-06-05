@@ -19,7 +19,7 @@ trait ErrorHandler extends StrictLogging {
     errorTracker = Some(ErrorTracker(maxRetries, maxRetries, "", new Date(), errorPolicy))
   }
 
-  def handleTry[A](t :Try[A]) : Option[A] = {
+  def handleTry[A](t : Try[A]) : Option[A] = {
     require(errorTracker.isDefined, "ErrorTracker is not set call. Initialize.")
     t
     match  {

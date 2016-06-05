@@ -40,6 +40,7 @@ case class StructFieldsExtractorBytes(includeAllFields: Boolean, fieldsAliasMap:
     val fieldsAndValues = fields.flatMap { case field =>
       getFieldBytes(field, struct).map(bytes => fieldsAliasMap.getOrElse(field.name(), field.name()) -> bytes)
     }
+
     fieldsAndValues
   }
 

@@ -16,7 +16,6 @@
 
 package com.datamountaineer.streamreactor.connect.schemas
 
-import com.datamountaineer.streamreactor.connect.config.Field
 import com.fasterxml.jackson.databind.JsonNode
 import io.confluent.connect.avro.AvroData
 import org.apache.avro.generic.GenericRecord
@@ -24,7 +23,6 @@ import org.apache.kafka.connect.connector.ConnectRecord
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.apache.kafka.connect.json.{JsonConverter, JsonDeserializer}
 import org.apache.kafka.connect.sink.SinkRecord
-import org.apache.kafka.connect.source.SourceRecord
 import org.apache.kafka.connect.storage.Converter
 
 import scala.collection.JavaConverters._
@@ -48,7 +46,7 @@ trait ConverterUtil {
     * @param key Extract the fields from the key or the value of the ConnectRecord.
     * @return A new Struct with the fields specified in the fieldsMappings.
     * */
-  def extractSinkFields(record: SinkRecord, fields: List[Field], key: Boolean = false) : SinkRecord = {
+  def extractSinkFields(record: SinkRecord, fields: Map[String, String], key: Boolean = false) : SinkRecord = {
     //get the value
     val value : Struct = if (key) record.key().asInstanceOf[Struct] else record.value.asInstanceOf[Struct]
 
@@ -60,9 +58,11 @@ trait ConverterUtil {
       val builder: SchemaBuilder = SchemaBuilder.struct.name(record.topic() + "-extracted")
 
       //build a new schema for the fields
-      fields.foreach(f => {
-          val extractedSchema = currentSchema.field(f.name)
-          builder.field(f.name, extractedSchema.schema())
+      fields.foreach({
+        case (name, alias) => {
+          val extractedSchema = currentSchema.field(name)
+          builder.field(alias, extractedSchema.schema())
+        }
       })
 
       //build
@@ -70,7 +70,11 @@ trait ConverterUtil {
 
       //created new record.
       val newStruct = new Struct(extractedSchema)
-      fields.foreach(f => newStruct.put(f.name, value.get(f.name)))
+      fields.foreach({
+        case (name, alias) => {
+          newStruct.put(alias, value.get(name))
+        }
+      })
 
       new SinkRecord(record.topic(), record.kafkaPartition(), Schema.STRING_SCHEMA, "key", extractedSchema, newStruct,
         record.kafkaOffset())

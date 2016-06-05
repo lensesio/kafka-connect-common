@@ -1,7 +1,6 @@
 package com.datamountaineer.streamreactor.connect.rowkeys
 
 import com.datamountaineer.streamreactor.connect.schemas.BytesHelper._
-import com.datamountaineer.streamreactor.connect.config.Field
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.kafka.connect.data.{Schema, Struct}
@@ -93,7 +92,7 @@ class AvroRecordRowKeyBuilderBytes(valuesExtractorsMap: Map[String, (Any) => Arr
   }
 }
 
-case class StructFieldsRowKeyBuilderBytes(fm : List[Field],
+case class StructFieldsRowKeyBuilderBytes(fm : List[String],
                                           keyDelimiter: String = "\n") extends RowKeyBuilderBytes {
   require(fm.nonEmpty, "Invalid keys provided")
 
@@ -104,11 +103,11 @@ case class StructFieldsRowKeyBuilderBytes(fm : List[Field],
     val schema = struct.schema
 
     val availableFields: Set[String] = schema.fields().map(_.name).toSet
-    val missingKeys = fm.filterNot(p => availableFields.contains(p.name))
+    val missingKeys = fm.filterNot(p => availableFields.contains(p))
     require(missingKeys.isEmpty, s"${missingKeys.mkString(",")} keys are not present in the SinkRecord payload:${availableFields.mkString(",")}")
 
     val keyBytes = fm.map { case key =>
-      val field = schema.field(key.name)
+      val field = schema.field(key)
       val value = struct.get(field)
       require(value != null, s"$key field value is null. Non null value is required for the fileds creating the row key")
       field.schema() match {
