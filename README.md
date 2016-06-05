@@ -8,7 +8,7 @@ Kafka Connect Common is in Maven, include it in your connector.
 <dependency>
 	<groupId>com.datamountaineer</groupId>
 	<artifactId>kafka-connect-common</artifactId>
-	<version>0.2.2.1</version>
+	<version>0.3</version>
 </dependency>
 
 #sbt
