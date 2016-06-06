@@ -55,7 +55,7 @@ trait ConverterUtil {
     } else {
       //get the schema
       val currentSchema = if (key) record.keySchema() else record.valueSchema()
-      val builder: SchemaBuilder = SchemaBuilder.struct.name(record.topic() + "-extracted")
+      val builder: SchemaBuilder = SchemaBuilder.struct.name(record.topic() + "_extracted")
 
       //build a new schema for the fields
       fields.foreach({
