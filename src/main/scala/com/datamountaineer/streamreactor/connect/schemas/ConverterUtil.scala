@@ -43,12 +43,13 @@ trait ConverterUtil {
     *
     * @param record The connectRecord to extract the fields from.
     * @param fields The fields to extract.
-    * @param key Extract the fields from the key or the value of the ConnectRecord.
+    * @param key    Extract the fields from the key or the value of the ConnectRecord.
+    * @param includeAllFields If set to true takes all the incoming fields and applies the mappings
     * @return A new Struct with the fields specified in the fieldsMappings.
-    * */
-  def extractSinkFields(record: SinkRecord, fields: Map[String, String], key: Boolean = false) : SinkRecord = {
+    **/
+  def convert(record: SinkRecord, fields: Map[String, String], key: Boolean = false, includeAllFields: Boolean = true): SinkRecord = {
     //get the value
-    val value : Struct = if (key) record.key().asInstanceOf[Struct] else record.value.asInstanceOf[Struct]
+    val value: Struct = if (key) record.key().asInstanceOf[Struct] else record.value.asInstanceOf[Struct]
 
     if (fields.isEmpty) {
       record
@@ -57,13 +58,23 @@ trait ConverterUtil {
       val currentSchema = if (key) record.keySchema() else record.valueSchema()
       val builder: SchemaBuilder = SchemaBuilder.struct.name(record.topic() + "_extracted")
 
-      //build a new schema for the fields
-      fields.foreach({
-        case (name, alias) => {
-          val extractedSchema = currentSchema.field(name)
-          builder.field(alias, extractedSchema.schema())
+      if (!includeAllFields) {
+        //build a new schema for the fields
+        fields.foreach({
+          case (name, alias) => {
+            val extractedSchema = currentSchema.field(name)
+            builder.field(alias, extractedSchema.schema())
+          }
+        })
+      }
+      else {
+        currentSchema.fields().asScala.foreach { f =>
+          fields.get(f.name()) match {
+            case None => builder.field(f.name(), f.schema())
+            case Some(alias) => builder.field(alias, f.schema())
+          }
         }
-      })
+      }
 
       //build
       val extractedSchema = builder.build()
@@ -86,8 +97,8 @@ trait ConverterUtil {
     *
     * @param record A ConnectRecord to extract the payload value from
     * @return A json string for the payload of the record
-    * */
-  def convertValueToJson(record: ConnectRecord) : JsonNode = {
+    **/
+  def convertValueToJson(record: ConnectRecord): JsonNode = {
     val converted: Array[Byte] = jsonConverter.fromConnectData(record.topic(), record.valueSchema(), record.value())
     deserializeToJson(record.topic(), payload = converted)
   }
@@ -97,8 +108,8 @@ trait ConverterUtil {
     *
     * @param record A ConnectRecord to extract the payload value from
     * @return A json string for the payload of the record
-    * */
-  def convertKeyToJson(record: ConnectRecord) : JsonNode = {
+    **/
+  def convertKeyToJson(record: ConnectRecord): JsonNode = {
     val converted = jsonConverter.fromConnectData(record.topic(), record.keySchema(), record.key())
     deserializeToJson(record.topic(), payload = converted)
   }
@@ -106,11 +117,11 @@ trait ConverterUtil {
   /**
     * Deserialize Byte array for a topic to json
     *
-    * @param topic Topic name for the byte array
+    * @param topic   Topic name for the byte array
     * @param payload Byte Array payload
     * @return A JsonNode representing the byte array
-    * */
-  def deserializeToJson(topic: String, payload: Array[Byte]) : JsonNode = {
+    **/
+  def deserializeToJson(topic: String, payload: Array[Byte]): JsonNode = {
     val json = deserializer.deserialize(topic, payload).get("payload")
     json
   }
@@ -119,9 +130,9 @@ trait ConverterUtil {
     * Configure the converter
     *
     * @param converter The Converter to configure
-    * @param props The props to configure with
-    * */
-  def configureConverter(converter: Converter, props: HashMap[String, String] = new HashMap[String, String] ) = {
+    * @param props     The props to configure with
+    **/
+  def configureConverter(converter: Converter, props: HashMap[String, String] = new HashMap[String, String]) = {
     converter.configure(props.asJava, false)
   }
 
