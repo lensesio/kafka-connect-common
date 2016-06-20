@@ -45,11 +45,11 @@ allprojects {
         slf4jVersion = "1.7.7"
         guavaVersion = "18.0"
         hbaseClientVersion = "1.2.0"
-        dataMountaineerCQLVersion = "1.0.0-SNAPSHOT"
+        dataMountaineerCQLVersion = "0.1"
     }
 
     repositories {
-        //mavenLocal()
+        mavenLocal()
         mavenCentral()
         maven { url "http://packages.confluent.io/maven/" }
         maven { url "http://repo.typesafe.com/typesafe/releases/" }
@@ -59,22 +59,30 @@ allprojects {
         compile "org.scala-lang:scala-library:$scala"
         compile "org.scala-lang:scala-compiler:$scala"
         compile "com.typesafe.scala-logging:scala-logging-slf4j_$scalaMajorVersion:$scalaLoggingVersion"
-        compile "org.apache.kafka:connect-json:$kafkaVersion"
-       // compile "com.datamountaineer:kafka-connector-query-language:$dataMountaineerCQLVersion"
-        compile ("io.confluent:kafka-connect-avro-converter:$confluentVersion") {
-            exclude group: "org.jboss.netty", module: "netty"
-        }
+        compile ("org.apache.kafka:connect-json:$kafkaVersion")
+        compile ("io.confluent:kafka-connect-avro-converter:$confluentVersion")
+        compile ("io.confluent:kafka-schema-registry:$confluentVersion")
 
-        compile("org.apache.hbase:hbase-client:$hbaseClientVersion") {
-            exclude group: "javax.ws.rs", module: "jsr311-api"
-        }
 
         compile "com.google.guava:guava:$guavaVersion"
+
         testCompile "org.mockito:mockito-all:$mockitoVersion"
         testCompile "org.scalacheck:scalacheck_$scalaMajorVersion:$scalaCheck"
         testCompile "org.scalatest:scalatest_$scalaMajorVersion:$scalaTest"
         testCompile "junit:junit:$junit"
+        testCompile "org.apache.curator:curator-test:3.1.0"
         testRuntime 'org.pegdown:pegdown:1.1.0'
+    }
+
+    shadowJar {
+
+        version = "$project.version-$confluentVersion"
+        dependencies {
+            exclude(dependency("org.apache.kafka:connect-json:$kafkaVersion"))
+            exclude(dependency("io.confluent:kafka-schema-registry:$confluentVersion"))
+            exclude(dependency("io.confluent:kafka-connect-avro-converter:$confluentVersion"))
+        }
+        zip64 true
     }
 
     test {
