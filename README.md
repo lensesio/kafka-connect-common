@@ -3,6 +3,15 @@
 
 Kafka Connect Common is in Maven, include it in your connector.
 
+
+#Releases
+
+
+| Version | Confluent Version |
+|---------|-------------------|
+| 0.3.2   | 2.0.1             |
+
+
 ```bash
 #maven
 <dependency>
@@ -17,7 +26,6 @@ libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "0.3.2"
 #gradle
 'com.datamountaineer:kafka-connect-common:0.3.2'
 ```
-
 
 # kafka-connect-common
 Common components used across the datamountaineer kafka connect connectors.

@@ -75,14 +75,7 @@ allprojects {
     }
 
     shadowJar {
-
         version = "$project.version-$confluentVersion"
-        dependencies {
-            exclude(dependency("org.apache.kafka:connect-json:$kafkaVersion"))
-            exclude(dependency("io.confluent:kafka-schema-registry:$confluentVersion"))
-            exclude(dependency("io.confluent:kafka-connect-avro-converter:$confluentVersion"))
-        }
-        zip64 true
     }
 
     test {
@@ -137,6 +130,12 @@ allprojects {
     signing {
         sign configurations.archives
     }
+
+    jar {
+        baseName = project.description
+        version =  "$project.version-$confluentVersion"
+    }
+
 
     // OSSRH publication
     if (project.hasProperty('release')) {
