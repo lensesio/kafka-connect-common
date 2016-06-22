@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/datamountaineer/kafka-connect-common.png?label=ready&title=Ready)](https://waffle.io/datamountaineer/kafka-connect-common)
 [![Build Status](https://travis-ci.org/datamountaineer/kafka-connect-common.svg?branch=master)](https://travis-ci.org/datamountaineer/kafka-connect-common)
 [<img src="https://img.shields.io/badge/latest%20release-v0.3.3-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
 
