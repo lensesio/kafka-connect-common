@@ -27,6 +27,42 @@ import scala.util.Failure
 
 object FutureAwaitWithFailFastFn extends StrictLogging {
 
+  def apply(executorService: ExecutorService, futures: Seq[Future[Unit]], duration: Duration): Unit = {
+    //make sure we ask the executor to shutdown to ensure the process exits
+    executorService.shutdown()
+
+    val promise = Promise[Boolean]()
+
+    //stop on the first failure
+    futures.foreach { f =>
+      f.onFailure { case t =>
+        if (promise.tryFailure(t)) {
+          executorService.shutdownNow()
+        }
+      }
+    }
+
+    val fut = Future.sequence(futures)
+    fut.foreach { case t =>
+      if (promise.trySuccess(true)) {
+        val failed = executorService.shutdownNow()
+        if (failed.size() > 0) {
+          logger.error(s"${failed.size()} task have failed.")
+        }
+      }
+    }
+
+    Await.ready(promise.future, duration).value match {
+      case Some(Failure(t)) =>
+        executorService.awaitTermination(1, TimeUnit.MINUTES)
+        //throw the underlying error
+        throw t
+
+      case _ =>
+        executorService.awaitTermination(1, TimeUnit.MINUTES)
+    }
+  }
+
   def apply[T](executorService: ExecutorService, futures: Seq[Future[T]], duration: Duration = 1.hours): Seq[T] = {
     //make sure we ask the executor to shutdown to ensure the process exits
     executorService.shutdown()
