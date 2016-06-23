@@ -14,6 +14,7 @@ Kafka Connect Common is in Maven, include it in your connector.
 |---------|-------------------|
 | 0.3.3   | 2.0.1             |
 
+
 ```bash
 #maven
 <dependency>
