@@ -20,13 +20,14 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.confluent.connect.avro.AvroData
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.connect.connector.ConnectRecord
-import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
+import org.apache.kafka.connect.data.{Field, Schema, SchemaBuilder, Struct}
 import org.apache.kafka.connect.json.{JsonConverter, JsonDeserializer}
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.storage.Converter
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
+import scala.collection.mutable
 
 /**
   * Created by andrew@datamountaineer.com on 22/02/16. 
@@ -43,38 +44,38 @@ trait ConverterUtil {
     *
     * @param record The connectRecord to extract the fields from.
     * @param fields The fields to extract.
+    * @param ignoreFields Fields to ignore from the sink records.
     * @param key Extract the fields from the key or the value of the ConnectRecord.
     * @return A new Struct with the fields specified in the fieldsMappings.
     * */
-  def convert(record: SinkRecord, fields: Map[String, String], key: Boolean = false) : SinkRecord = {
-    //get the value
+  def convert(record: SinkRecord,
+              fields: Map[String, String],
+              ignoreFields: Set[String] = Set.empty[String],
+              key: Boolean = false) : SinkRecord = {
     val value : Struct = if (key) record.key().asInstanceOf[Struct] else record.value.asInstanceOf[Struct]
 
-    if (fields.isEmpty) {
+    if (fields.isEmpty && ignoreFields.isEmpty) {
       record
     } else {
-      //get the schema
       val currentSchema = if (key) record.keySchema() else record.valueSchema()
       val builder: SchemaBuilder = SchemaBuilder.struct.name(record.topic() + "_extracted")
 
       //build a new schema for the fields
-      fields.foreach({
-        case (name, alias) => {
-          val extractedSchema = currentSchema.field(name)
-          builder.field(alias, extractedSchema.schema())
-        }
-      })
+      if (fields.nonEmpty) {
+        fields.foreach({ case (name, alias) =>
+            val extractedSchema = currentSchema.field(name)
+            builder.field(alias, extractedSchema.schema())
+        })
+      } else if (ignoreFields.nonEmpty) {
+        val ignored = currentSchema.fields().asScala.filterNot(f => ignoreFields.contains(f.name()))
+        ignored.foreach(i => builder.field(i.name, i.schema))
+      } else {
+        currentSchema.fields().asScala.foreach(f => builder.field(f.name(), f.schema()))
+      }
 
-      //build
       val extractedSchema = builder.build()
-
-      //created new record.
       val newStruct = new Struct(extractedSchema)
-      fields.foreach({
-        case (name, alias) => {
-          newStruct.put(alias, value.get(name))
-        }
-      })
+      fields.foreach({ case (name, alias) => newStruct.put(alias, value.get(name)) })
 
       new SinkRecord(record.topic(), record.kafkaPartition(), Schema.STRING_SCHEMA, "key", extractedSchema, newStruct,
         record.kafkaOffset())
