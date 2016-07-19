@@ -17,26 +17,30 @@
 package com.datamountaineer.streamreactor.connect.schemas
 
 import com.fasterxml.jackson.databind.JsonNode
-import io.confluent.connect.avro.AvroData
+import io.confluent.connect.avro.{AvroConverter, AvroData}
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.connect.connector.ConnectRecord
-import org.apache.kafka.connect.data.{Field, Schema, SchemaBuilder, Struct}
+import org.apache.kafka.connect.data._
 import org.apache.kafka.connect.json.{JsonConverter, JsonDeserializer}
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.storage.Converter
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
-import scala.collection.mutable
 
 /**
   * Created by andrew@datamountaineer.com on 22/02/16. 
   * stream-reactor
   */
 
+
+
 trait ConverterUtil {
+  type avroSchema = org.apache.avro.Schema
+
   lazy val jsonConverter = new JsonConverter()
   lazy val deserializer = new JsonDeserializer()
+  lazy val avroConverter = new AvroConverter()
   lazy val avroData = new AvroData(100)
 
   /**
@@ -136,4 +140,6 @@ trait ConverterUtil {
     val avro = avroData.fromConnectData(record.valueSchema(), record.value())
     avro.asInstanceOf[GenericRecord]
   }
+
+  def convertAvroToConnect(topic: String, obj : Array[Byte]) =  avroConverter.toConnectData(topic, obj)
 }
