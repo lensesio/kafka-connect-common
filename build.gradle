@@ -35,7 +35,7 @@ allprojects {
         scalaCheck = '1.11.1'
         scalaTest = '2.2.6'
         junit = '4.11'
-        confluentVersion = '2.0.1'
+        confluentVersion = '3.0.0'
         scalaLoggingVersion = '2.1.2'
         kafkaVersion = '0.10.0.0'
         mockitoVersion = '1.10.19'
