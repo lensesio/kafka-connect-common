@@ -80,8 +80,6 @@ allprojects {
         }
     }
 
-    check.dependsOn jacocoTestReport
-
     shadowJar {
         version = "$project.version-$confluentVersion"
     }
@@ -90,8 +88,9 @@ allprojects {
         maxParallelForks = 1
         minHeapSize '256m'
         maxHeapSize '2048m'
-        systemProperty 'truststore', projectDir.canonicalPath + "/src/test/resources/stc_truststore.jks"
         systemProperty 'keystore', projectDir.canonicalPath + "/src/test/resources/stc_keystore.jks"
+        systemProperty 'truststore', projectDir.canonicalPath + "/src/test/resources/stc_truststore.jks"
+        finalizedBy jacocoTestReport
     }
 
     task testJar(type: Jar, dependsOn: testClasses) {
