@@ -6,5 +6,7 @@ install: gradle check
 script: gradle fatJar
 notifications:
   slack: datamountaineers:gpg5e7VabFjAT1gQZqwxgsqP
-after_success:
-  - codecov
+test:
+    post:
+        - if [ -e ./gradlew ]; then ./gradlew jacocoTestReport;else gradle jacocoTestReport;fi
+        - bash <(curl -s https://codecov.io/bash)
