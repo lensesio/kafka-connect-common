@@ -16,6 +16,7 @@ buildscript {
 apply plugin: 'signing'
 apply plugin: 'io.codearte.nexus-staging'
 apply plugin: 'net.researchgate.release'
+apply plugin: 'jacoco'
 
 allprojects {
     group = 'com.datamountaineer'
@@ -70,6 +71,13 @@ allprojects {
         testCompile "junit:junit:$junit"
         testCompile "org.apache.curator:curator-test:3.1.0"
         testRuntime 'org.pegdown:pegdown:1.1.0'
+    }
+    
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+            html.enabled false
+        }
     }
 
     shadowJar {
