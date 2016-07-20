@@ -6,3 +6,5 @@ install: gradle check
 script: gradle fatJar
 notifications:
   slack: datamountaineers:gpg5e7VabFjAT1gQZqwxgsqP
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
