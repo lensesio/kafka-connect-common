@@ -80,6 +80,8 @@ allprojects {
         }
     }
 
+    check.dependsOn jacocoTestReport
+
     shadowJar {
         version = "$project.version-$confluentVersion"
     }
