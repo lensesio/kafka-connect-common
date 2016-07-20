@@ -7,4 +7,4 @@ script: gradle fatJar
 notifications:
   slack: datamountaineers:gpg5e7VabFjAT1gQZqwxgsqP
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash) -t db1c2fdf-58c3-43f1-a84a-cd3448de385f
