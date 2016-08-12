@@ -12,7 +12,7 @@ import scala.util.{Failure, Success, Try}
   * stream-reactor-maven
   */
 trait ErrorHandler extends StrictLogging {
-  var errorTracker : Option[ErrorTracker] = None
+  var errorTracker: Option[ErrorTracker] = None
   private val dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS'Z'")
 
   def initialize(maxRetries: Int, errorPolicy: ErrorPolicy): Unit = {
@@ -30,7 +30,7 @@ trait ErrorHandler extends StrictLogging {
   def handleTry[A](t : Try[A]) : Option[A] = {
     require(errorTracker.isDefined, "ErrorTracker is not set call. Initialize.")
     t
-    match  {
+    match {
       case Success(s) => {
         //success, check if we had previous errors.
         if (errorTracker.get.retries != errorTracker.get.maxRetries) {
@@ -43,7 +43,7 @@ trait ErrorHandler extends StrictLogging {
       }
       case Failure(f) =>
         //decrement the retry count
-        logger.error(s"Encountered error ${f.getMessage}")
+        logger.error(s"Encountered error ${f.getMessage}", f)
         this.errorTracker = Some(decrementErrorTracker(errorTracker.get, f.getMessage))
         handleError(f, errorTracker.get.retries, errorTracker.get.policy)
         None
@@ -55,7 +55,7 @@ trait ErrorHandler extends StrictLogging {
       errorTracker.get.policy))
   }
 
-  private def decrementErrorTracker(errorTracker: ErrorTracker, msg : String) : ErrorTracker = {
+  private def decrementErrorTracker(errorTracker: ErrorTracker, msg: String): ErrorTracker = {
     if (errorTracker.maxRetries == -1) {
       ErrorTracker(errorTracker.retries, errorTracker.maxRetries, msg, new Date(), errorTracker.policy)
     } else {
@@ -63,7 +63,7 @@ trait ErrorHandler extends StrictLogging {
     }
   }
 
-  private def handleError(f : Throwable, retries: Int, policy: ErrorPolicy): Unit = {
+  private def handleError(f: Throwable, retries: Int, policy: ErrorPolicy): Unit = {
     policy.handle(f, true, retries)
   }
 }
