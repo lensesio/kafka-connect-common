@@ -6,7 +6,6 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
         classpath 'com.github.maiflai:gradle-scalatest:0.9'
         classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
         classpath 'net.researchgate:gradle-release:2.3.4'
@@ -26,7 +25,6 @@ allprojects {
     apply plugin: 'scala'
     apply plugin: 'maven'
     apply plugin: 'com.github.maiflai.scalatest'
-    apply plugin: 'com.github.johnrengelman.shadow'
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
@@ -54,17 +52,20 @@ allprojects {
         maven { url "http://repo.typesafe.com/typesafe/releases/" }
     }
 
+    configurations {
+        provided
+        compile.extendsFrom provided
+    }
+
     dependencies {
         compile "org.scala-lang:scala-library:$scala"
         compile "org.scala-lang:scala-compiler:$scala"
         compile "com.typesafe.scala-logging:scala-logging-slf4j_$scalaMajorVersion:$scalaLoggingVersion"
-        compile ("org.apache.kafka:connect-json:$kafkaVersion")
-        compile ("io.confluent:kafka-connect-avro-converter:$confluentVersion")
-        compile ("io.confluent:kafka-schema-registry:$confluentVersion")
-
-
         compile "com.google.guava:guava:$guavaVersion"
-
+        provided "org.apache.kafka:connect-json:$kafkaVersion"
+        provided "io.confluent:kafka-connect-avro-converter:$confluentVersion"
+        provided "io.confluent:kafka-schema-registry:$confluentVersion"
+        provided "org.apache.avro:avro:$avroVersion"
         testCompile "org.mockito:mockito-all:$mockitoVersion"
         testCompile "org.scalacheck:scalacheck_$scalaMajorVersion:$scalaCheck"
         testCompile "org.scalatest:scalatest_$scalaMajorVersion:$scalaTest"
@@ -80,8 +81,18 @@ allprojects {
         }
     }
 
-    shadowJar {
-        version = "$project.version-$confluentVersion"
+    jar {
+        dependsOn configurations.runtime
+        from {
+            (configurations.runtime - configurations.provided).collect {
+                it.isDirectory() ? it : zipTree(it)
+            }
+        } {
+            exclude "META-INF/*.SF"
+            exclude "META-INF/*.DSA"
+            exclude "META-INF/*.RSA"
+        }
+        jar.archiveName = "$project.name-$project.version-$confluentVersion-all.jar"
     }
 
     test {
@@ -123,26 +134,16 @@ allprojects {
         extension = 'tgz'
     }
 
-
     artifacts {
         archives javadocJar, scaladocJar, sourcesJar
     }
 
     task compile(dependsOn: 'compileScala')
-    task fatJar(dependsOn : ['test', 'shadowJar'])
-    task fatJarNoTest(dependsOn : 'shadowJar')
-
     javadoc.dependsOn scaladoc
 
     signing {
         sign configurations.archives
     }
-
-    jar {
-        baseName = project.description
-        version =  "$project.version-$confluentVersion"
-    }
-
 
     // OSSRH publication
     if (project.hasProperty('release')) {
