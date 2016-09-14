@@ -16,12 +16,13 @@
 
 package com.datamountaineer.streamreactor.connect.schemas
 
+import com.datamountaineer.streamreactor.connect.json.SimpleJsonConverter
 import com.fasterxml.jackson.databind.JsonNode
 import io.confluent.connect.avro.{AvroConverter, AvroData}
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.connect.connector.ConnectRecord
 import org.apache.kafka.connect.data._
-import org.apache.kafka.connect.json.{JsonConverter, JsonDeserializer}
+import org.apache.kafka.connect.json.JsonDeserializer
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.storage.Converter
 
@@ -34,11 +35,10 @@ import scala.collection.immutable.HashMap
   */
 
 
-
 trait ConverterUtil {
   type avroSchema = org.apache.avro.Schema
 
-  lazy val jsonConverter = new JsonConverter()
+  lazy val simpleJsonConverter = new SimpleJsonConverter()
   lazy val deserializer = new JsonDeserializer()
   lazy val avroConverter = new AvroConverter()
   lazy val avroData = new AvroData(100)
@@ -46,17 +46,17 @@ trait ConverterUtil {
   /**
     * Create a Struct based on a set of fields to extract from a ConnectRecord
     *
-    * @param record The connectRecord to extract the fields from.
-    * @param fields The fields to extract.
+    * @param record       The connectRecord to extract the fields from.
+    * @param fields       The fields to extract.
     * @param ignoreFields Fields to ignore from the sink records.
-    * @param key Extract the fields from the key or the value of the ConnectRecord.
+    * @param key          Extract the fields from the key or the value of the ConnectRecord.
     * @return A new Struct with the fields specified in the fieldsMappings.
-    * */
+    **/
   def convert(record: SinkRecord,
               fields: Map[String, String],
               ignoreFields: Set[String] = Set.empty[String],
-              key: Boolean = false) : SinkRecord = {
-    val value : Struct = if (key) record.key().asInstanceOf[Struct] else record.value.asInstanceOf[Struct]
+              key: Boolean = false): SinkRecord = {
+    val value: Struct = if (key) record.key().asInstanceOf[Struct] else record.value.asInstanceOf[Struct]
 
     if (fields.isEmpty && ignoreFields.isEmpty) {
       record
@@ -67,8 +67,8 @@ trait ConverterUtil {
       //build a new schema for the fields
       if (fields.nonEmpty) {
         fields.foreach({ case (name, alias) =>
-            val extractedSchema = currentSchema.field(name)
-            builder.field(alias, extractedSchema.schema())
+          val extractedSchema = currentSchema.field(name)
+          builder.field(alias, extractedSchema.schema())
         })
       } else if (ignoreFields.nonEmpty) {
         val ignored = currentSchema.fields().asScala.filterNot(f => ignoreFields.contains(f.name()))
@@ -91,10 +91,9 @@ trait ConverterUtil {
     *
     * @param record A ConnectRecord to extract the payload value from
     * @return A json string for the payload of the record
-    * */
-  def convertValueToJson(record: ConnectRecord) : JsonNode = {
-    val converted: Array[Byte] = jsonConverter.fromConnectData(record.topic(), record.valueSchema(), record.value())
-    deserializeToJson(record.topic(), payload = converted)
+    **/
+  def convertValueToJson(record: ConnectRecord): JsonNode = {
+    simpleJsonConverter.fromConnectData(record.valueSchema(), record.value())
   }
 
   /**
@@ -102,20 +101,19 @@ trait ConverterUtil {
     *
     * @param record A ConnectRecord to extract the payload value from
     * @return A json string for the payload of the record
-    * */
-  def convertKeyToJson(record: ConnectRecord) : JsonNode = {
-    val converted = jsonConverter.fromConnectData(record.topic(), record.keySchema(), record.key())
-    deserializeToJson(record.topic(), payload = converted)
+    **/
+  def convertKeyToJson(record: ConnectRecord): JsonNode = {
+    simpleJsonConverter.fromConnectData(record.keySchema(), record.key())
   }
 
   /**
     * Deserialize Byte array for a topic to json
     *
-    * @param topic Topic name for the byte array
+    * @param topic   Topic name for the byte array
     * @param payload Byte Array payload
     * @return A JsonNode representing the byte array
-    * */
-  def deserializeToJson(topic: String, payload: Array[Byte]) : JsonNode = {
+    **/
+  def deserializeToJson(topic: String, payload: Array[Byte]): JsonNode = {
     val json = deserializer.deserialize(topic, payload).get("payload")
     json
   }
@@ -124,9 +122,9 @@ trait ConverterUtil {
     * Configure the converter
     *
     * @param converter The Converter to configure
-    * @param props The props to configure with
-    * */
-  def configureConverter(converter: Converter, props: HashMap[String, String] = new HashMap[String, String] ) = {
+    * @param props     The props to configure with
+    **/
+  def configureConverter(converter: Converter, props: HashMap[String, String] = new HashMap[String, String]) = {
     converter.configure(props.asJava, false)
   }
 
@@ -141,5 +139,5 @@ trait ConverterUtil {
     avro.asInstanceOf[GenericRecord]
   }
 
-  def convertAvroToConnect(topic: String, obj : Array[Byte]) =  avroConverter.toConnectData(topic, obj)
+  def convertAvroToConnect(topic: String, obj: Array[Byte]) = avroConverter.toConnectData(topic, obj)
 }
