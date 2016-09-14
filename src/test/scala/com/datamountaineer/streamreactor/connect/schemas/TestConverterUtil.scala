@@ -12,14 +12,12 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
   "ConverterUtil" should {
     "Should convert a SinkRecord Value to json" in {
       val testRecord = getTestRecord
-      configureConverter(jsonConverter)
       val json = convertValueToJson(testRecord).toString
       json shouldBe VALUE_JSON_STRING
     }
 
     "Should convert a SinkRecord Key to json" in {
       val testRecord = getTestRecord
-      configureConverter(jsonConverter)
       val json = convertKeyToJson(testRecord).asText()
       json shouldBe KEY
     }
