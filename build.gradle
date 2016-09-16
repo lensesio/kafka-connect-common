@@ -61,7 +61,7 @@ allprojects {
         compile "org.scala-lang:scala-library:$scala"
         compile "org.scala-lang:scala-compiler:$scala"
         provided "com.typesafe.scala-logging:scala-logging-slf4j_$scalaMajorVersion:$scalaLoggingVersion"
-        compile "com.google.guava:guava:$guavaVersion"
+        provided "com.google.guava:guava:$guavaVersion"
         provided "org.apache.kafka:connect-json:$kafkaVersion"
         provided "io.confluent:kafka-connect-avro-converter:$confluentVersion"
         provided "io.confluent:kafka-schema-registry:$confluentVersion"
