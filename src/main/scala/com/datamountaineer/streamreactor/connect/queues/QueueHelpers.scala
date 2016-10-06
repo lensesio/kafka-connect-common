@@ -43,7 +43,7 @@ object QueueHelpers extends StrictLogging {
     * */
   def drainQueueWithTimeOut[T](queue: LinkedBlockingQueue[T], batchSize: Int, timeOut: Long) = {
     val l = new util.ArrayList[T]()
-    logger.info(s"Found ${queue.size()}. Draining entries to batchSize ${batchSize}.")
+    logger.debug(s"Found ${queue.size()}. Draining entries to batchSize ${batchSize}.")
     queue.drainWithTimeoutTo(l, batchSize, (timeOut * 1E9).toLong, TimeUnit.NANOSECONDS)
     l
   }
@@ -57,7 +57,7 @@ object QueueHelpers extends StrictLogging {
     * */
   def drainQueue[T](queue: LinkedBlockingQueue[T], batchSize: Int) = {
     val l = new util.ArrayList[T]()
-    logger.info(s"Found ${queue.size()}. Draining entries to batchSize ${batchSize}.")
+    logger.debug(s"Found ${queue.size()}. Draining entries to batchSize ${batchSize}.")
     queue.drainTo(l, batchSize)
     l
   }
