@@ -25,9 +25,12 @@ import org.apache.kafka.connect.data._
 import org.apache.kafka.connect.json.JsonDeserializer
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.storage.Converter
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
+import scala.util.Try
 
 /**
   * Created by andrew@datamountaineer.com on 22/02/16. 
@@ -44,6 +47,88 @@ trait ConverterUtil {
   lazy val avroData = new AvroData(100)
 
   /**
+    * For a schemaless payload when used for a json the connect JsonConverter will provide a Map[_,_] instance as it deserializes
+    * the payload
+    *
+    * @param record       - The connect record to extract the fields from
+    * @param fields       - A map of fields alias
+    * @param ignoreFields - The list of fields to leave out
+    * @param key          - if true it will use record.key to do the transformation; if false will use record.value
+    * @return
+    */
+  def convertSchemalessJson(record: SinkRecord,
+                            fields: Map[String, String],
+                            ignoreFields: Set[String] = Set.empty[String],
+                            key: Boolean = false,
+                            includeAllFields: Boolean = true): java.util.Map[String, Any] = {
+    val value: java.util.Map[String, Any] = (if (key) record.key() else record.value()) match {
+      case s: java.util.Map[_, _] => s.asInstanceOf[java.util.Map[String, Any]]
+      case other => sys.error(s"${other.getClass} is not valid. Expecting a Struct")
+    }
+
+    ignoreFields.foreach(value.remove)
+    if (!includeAllFields) {
+      value.keySet().asScala.filterNot(fields.contains).foreach(value.remove)
+    }
+
+    fields
+      .filter { case (field, alias) => field != alias }
+      .foreach { case (field, alias) =>
+        Option(value.get(field)).foreach { v => value.remove(field)
+          value.put(alias, v)
+        }
+      }
+    value
+  }
+
+  /**
+    * Handles scenarios where the sink record schema is set to string and the payload is json
+    *
+    * @param record           - the sink record instance
+    * @param fields           - fields to include/select
+    * @param ignoreFields     - fields to ignore/remove
+    * @param key              -if true it targets the sinkrecord key; otherwise it uses the sinkrecord.value
+    * @param includeAllFields - if false it will remove the fields not present in the fields parameter
+    * @return
+    */
+  def convertStringSchemaAndJson(record: SinkRecord,
+                                 fields: Map[String, String],
+                                 ignoreFields: Set[String] = Set.empty[String],
+                                 key: Boolean = false,
+                                 includeAllFields: Boolean = true): JValue = {
+
+    val schema = if (key) record.keySchema() else record.valueSchema()
+    require(schema != null && schema.`type`() == Schema.STRING_SCHEMA.`type`(), s"$schema is not handled. Expecting Schema.String")
+
+    val jsonValue: String = (if (key) record.key() else record.value()) match {
+      case s: String => s
+      case other => sys.error(s"${other.getClass} is not valid. Expecting a Struct")
+    }
+
+    val json = Try(parse(jsonValue)).getOrElse(sys.error(s"Invalid json with the record on topic ${record.topic} and offset ${record.kafkaOffset()}"))
+
+
+    val withFieldsRemoved = ignoreFields.foldLeft(json) { case (j, ignored) =>
+      j.removeField {
+        case (`ignored`, _) => true
+        case _ => false
+      }
+    }
+
+    val jvalue = if (!includeAllFields) {
+      withFieldsRemoved.removeField { case (field, _) => !fields.contains(field) }
+    } else withFieldsRemoved
+
+    fields.filter { case (field, alias) => field != alias }
+      .foldLeft(jvalue) { case (j, (field, alias)) =>
+        j.transformField {
+          case JField(`field`, jvalue) => (alias, jvalue)
+          case other: JField => other
+        }
+      }
+  }
+
+  /**
     * Create a Struct based on a set of fields to extract from a ConnectRecord
     *
     * @param record       The connectRecord to extract the fields from.
@@ -56,7 +141,12 @@ trait ConverterUtil {
               fields: Map[String, String],
               ignoreFields: Set[String] = Set.empty[String],
               key: Boolean = false): SinkRecord = {
-    val value: Struct = if (key) record.key().asInstanceOf[Struct] else record.value.asInstanceOf[Struct]
+
+    val value: Struct = (if (key) record.key() else record.value()) match {
+      case s: Struct => s
+      case other => sys.error(s"${other.getClass} is not valid. Expecting a Struct")
+    }
+
 
     if (fields.isEmpty && ignoreFields.isEmpty) {
       record

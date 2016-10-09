@@ -43,6 +43,7 @@ allprojects {
         jacksonxmlVersion = '2.6.5'
         slf4jVersion = "1.7.7"
         guavaVersion = "18.0"
+        json4sVersion= "3.4.1"
     }
 
     repositories {
@@ -66,6 +67,9 @@ allprojects {
         provided "io.confluent:kafka-connect-avro-converter:$confluentVersion"
         provided "io.confluent:kafka-schema-registry:$confluentVersion"
         provided "org.apache.avro:avro:$avroVersion"
+        compile "org.json4s:json4s-native_$scalaMajorVersion:$json4sVersion"
+        compile "org.json4s:json4s-jackson_$scalaMajorVersion:$json4sVersion"
+
         testCompile "org.mockito:mockito-all:$mockitoVersion"
         testCompile "org.scalacheck:scalacheck_$scalaMajorVersion:$scalaCheck"
         testCompile "org.scalatest:scalatest_$scalaMajorVersion:$scalaTest"
@@ -74,8 +78,10 @@ allprojects {
         testCompile 'org.powermock:powermock-module-junit4:1.6.5'
         testRuntime 'org.pegdown:pegdown:1.1.0'
 
+
+
     }
-    
+
     jacocoTestReport {
         reports {
             xml.enabled true
