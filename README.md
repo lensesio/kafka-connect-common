@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/datamountaineer/kafka-connect-common.svg?branch=master)](https://travis-ci.org/datamountaineer/kafka-connect-common)
-[<img src="https://img.shields.io/badge/latest%20release-v0.4.2-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
+[<img src="https://img.shields.io/badge/latest%20release-v0.5-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
 Kafka Connect Common is in Maven, include it in your connector.
 
 
@@ -8,7 +8,8 @@ Kafka Connect Common is in Maven, include it in your connector.
 
 | Version | Confluent Version |Kafka|
 | ------- | ----------------- |-----|
-|0.4.2|3.0.1|10.0.1|
+|0.5|3.0.1|10.0.1|
+|0.4.2|3.0.0|10.0.0|
 |0.4.1|3.0.0|10.0.0|
 |0.4|3.0.0|10.0.0|
 |0.3.8|3.0.0||
@@ -23,14 +24,14 @@ Kafka Connect Common is in Maven, include it in your connector.
 <dependency>
 	<groupId>com.datamountaineer</groupId>
 	<artifactId>kafka-connect-common</artifactId>
-	<version>0.4.2</version>
+	<version>0.5</version>
 </dependency>
 
 #sbt
-libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "0.4.2"
+libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "0.5"
 
 #gradle
-'com.datamountaineer:kafka-connect-common:0.4.2'
+'com.datamountaineer:kafka-connect-common:0.5'
 ```
 
 # kafka-connect-common
