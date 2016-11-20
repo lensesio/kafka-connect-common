@@ -32,6 +32,7 @@ trait StringKeyBuilder {
   * Uses the connect record (topic, partition, offset) to set the schema
   *
   * @param keyDelimiter Row key delimiter
+  * @return a unique string for the message identified by: <topic>|<partition>|<offset> 
   */
 class StringGenericRowKeyBuilder(keyDelimiter: String = "|") extends StringKeyBuilder {
 
