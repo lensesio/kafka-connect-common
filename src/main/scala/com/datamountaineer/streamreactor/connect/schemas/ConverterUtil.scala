@@ -122,7 +122,7 @@ trait ConverterUtil {
     fields.filter { case (field, alias) => field != alias }
       .foldLeft(jvalue) { case (j, (field, alias)) =>
         j.transformField {
-          case JField(`field`, jvalue) => (alias, jvalue)
+          case JField(`field`, v) => (alias, v)
           case other: JField => other
         }
       }
