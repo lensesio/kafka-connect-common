@@ -68,7 +68,7 @@ object JsonSimpleConverter {
       case JNull | JNothing => new SchemaAndValue(Schema.STRING_SCHEMA, null)
       case JString(s) => new SchemaAndValue(Schema.STRING_SCHEMA, s)
       case JObject(values) =>
-        val builder = SchemaBuilder.struct().name(name)
+        val builder = SchemaBuilder.struct().name(name.replace("/", "_"))
 
         val fields = values.map { case (n, v) =>
           val schemaAndValue = convert(n, v)
