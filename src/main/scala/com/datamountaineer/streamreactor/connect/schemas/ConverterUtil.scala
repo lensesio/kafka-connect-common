@@ -158,6 +158,7 @@ trait ConverterUtil {
       if (fields.nonEmpty) {
         fields.foreach({ case (name, alias) =>
           val extractedSchema = currentSchema.field(name)
+          require(extractedSchema != null, s"Could not find $name in the schema fields. Available fields are:${currentSchema.fields().asScala.map(_.name()).mkString(",")}")
           builder.field(alias, extractedSchema.schema())
         })
       } else if (ignoreFields.nonEmpty) {
