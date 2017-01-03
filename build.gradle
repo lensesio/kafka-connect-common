@@ -15,7 +15,6 @@ buildscript {
 apply plugin: 'signing'
 apply plugin: 'io.codearte.nexus-staging'
 apply plugin: 'net.researchgate.release'
-apply plugin: 'jacoco'
 
 allprojects {
     group = 'com.datamountaineer'
@@ -38,7 +37,6 @@ allprojects {
         scalaLoggingVersion = '2.1.2'
         kafkaVersion = '0.10.0.1'
         mockitoVersion = '1.10.19'
-        jacksonDatabind = '2.7.0'
         avroVersion = '1.8.0'
         avro4sVersion = "1.6.2"
         jacksonxmlVersion = '2.6.5'
@@ -79,14 +77,6 @@ allprojects {
         testCompile "org.apache.curator:curator-test:3.1.0"
         testCompile 'org.powermock:powermock-module-junit4:1.6.5'
         testRuntime 'org.pegdown:pegdown:1.1.0'
-
-    }
-
-    jacocoTestReport {
-        reports {
-            xml.enabled true
-            html.enabled false
-        }
     }
 
     jar {
@@ -109,7 +99,6 @@ allprojects {
         maxHeapSize '2048m'
         systemProperty 'keystore', projectDir.canonicalPath + "/src/test/resources/stc_keystore.jks"
         systemProperty 'truststore', projectDir.canonicalPath + "/src/test/resources/stc_truststore.jks"
-        finalizedBy jacocoTestReport
     }
 
     task testJar(type: Jar, dependsOn: testClasses) {
