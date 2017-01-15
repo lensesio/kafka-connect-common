@@ -85,7 +85,7 @@ case class StructFieldsExtractor(includeAllFields: Boolean, fieldsAliasMap: Map[
               case Date.LOGICAL_NAME => StructFieldsExtractor.DateFormat.format(Date.toLogical(field.schema, value.asInstanceOf[Int]))
               case Time.LOGICAL_NAME => StructFieldsExtractor.TimeFormat.format(Time.toLogical(field.schema, value.asInstanceOf[Int]))
               case Timestamp.LOGICAL_NAME => StructFieldsExtractor.DateFormat.format(Timestamp.toLogical(field.schema, value.asInstanceOf[Long]))
-              case _ => value
+              case _ => sys.error(s"$other is not a recognized schema")
             }
         }
         Some(v)
