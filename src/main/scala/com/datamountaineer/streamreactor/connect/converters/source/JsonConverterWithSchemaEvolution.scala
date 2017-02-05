@@ -50,7 +50,7 @@ class JsonConverterWithSchemaEvolution extends Converter {
 
 object JsonConverterWithSchemaEvolution {
 
-  private[source] val ConfigKey = "JsonConverterWithSchemaEvolution.Schema"
+  val ConfigKey = "JsonConverterWithSchemaEvolution.Schema"
 
   import org.json4s._
   import org.json4s.native.JsonMethods._

@@ -1,5 +1,6 @@
 package com.datamountaineer.streamreactor.connect.converters.source
 
+import com.datamountaineer.streamreactor.connect.converters.MsgKey
 import org.apache.kafka.connect.data.Schema
 import org.scalatest.{Matchers, WordSpec}
 

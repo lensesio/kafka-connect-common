@@ -5,6 +5,7 @@ import java.nio.ByteBuffer
 import java.nio.file.Paths
 import java.util.UUID
 
+import com.datamountaineer.streamreactor.connect.converters.MsgKey
 import com.sksamuel.avro4s._
 import io.confluent.connect.avro.AvroData
 import org.apache.avro.generic.GenericRecord

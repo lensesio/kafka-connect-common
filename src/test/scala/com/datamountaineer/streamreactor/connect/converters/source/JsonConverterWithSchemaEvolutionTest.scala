@@ -1,8 +1,8 @@
-package com.datamountaineer.streamreactor.connect.converters
+package com.datamountaineer.streamreactor.connect.converters.source
 
 import java.util.Collections
 
-import com.datamountaineer.streamreactor.connect.converters.source.MsgKey
+import com.datamountaineer.streamreactor.connect.converters.MsgKey
 import com.sksamuel.avro4s.{RecordFormat, SchemaFor}
 import io.confluent.connect.avro.AvroData
 import org.apache.avro.Schema
