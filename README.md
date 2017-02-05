@@ -8,6 +8,7 @@ Kafka Connect Common is in Maven, include it in your connector.
 
 | Version | Confluent Version |Kafka|
 | ------- | ----------------- |-----|
+|0.6.7|3.1.1|10.1.0|
 |0.6.3|3.0.1|10.0.1|
 |0.6.2|3.0.1|10.0.1|
 |0.6.1|3.0.1|10.0.1|
@@ -27,7 +28,7 @@ Kafka Connect Common is in Maven, include it in your connector.
 <dependency>
 	<groupId>com.datamountaineer</groupId>
 	<artifactId>kafka-connect-common</artifactId>
-	<version>0.6.2</version>
+	<version>0.6.7</version>
 </dependency>
 
 #sbt
