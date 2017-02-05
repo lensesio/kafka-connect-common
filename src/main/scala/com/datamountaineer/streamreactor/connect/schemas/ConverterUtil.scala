@@ -173,7 +173,7 @@ trait ConverterUtil {
       fields.foreach({ case (name, alias) => newStruct.put(alias, value.get(name)) })
 
       new SinkRecord(record.topic(), record.kafkaPartition(), Schema.STRING_SCHEMA, "key", extractedSchema, newStruct,
-        record.kafkaOffset())
+        record.kafkaOffset(), record.timestamp(), record.timestampType())
     }
   }
 

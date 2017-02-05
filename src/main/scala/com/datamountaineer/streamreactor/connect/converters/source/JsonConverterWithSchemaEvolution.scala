@@ -20,6 +20,7 @@ import java.nio.charset.Charset
 import java.util
 import java.util.Collections
 
+import com.datamountaineer.streamreactor.connect.converters.MsgKey
 import io.confluent.connect.avro.AvroData
 import org.apache.kafka.connect.data._
 import org.apache.kafka.connect.source.SourceRecord

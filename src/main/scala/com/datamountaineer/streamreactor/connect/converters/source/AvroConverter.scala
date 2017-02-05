@@ -20,6 +20,7 @@ package com.datamountaineer.streamreactor.connect.converters.source
 import java.io.File
 import java.util.Collections
 
+import com.datamountaineer.streamreactor.connect.converters.MsgKey
 import io.confluent.connect.avro.AvroData
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.avro.io.DecoderFactory
