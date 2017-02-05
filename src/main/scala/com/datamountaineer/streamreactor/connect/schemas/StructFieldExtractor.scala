@@ -69,16 +69,16 @@ case class StructFieldsExtractor(includeAllFields: Boolean, fieldsAliasMap: Map[
       case None => None
       case Some(value) =>
         val fieldName = field.name()
-        val v = field.schema() match {
-          case Schema.BOOLEAN_SCHEMA | Schema.OPTIONAL_BOOLEAN_SCHEMA => struct.getBoolean(fieldName)
-          case Schema.BYTES_SCHEMA | Schema.OPTIONAL_BYTES_SCHEMA => struct.getBytes(fieldName)
-          case Schema.FLOAT32_SCHEMA | Schema.OPTIONAL_FLOAT32_SCHEMA => struct.getFloat32(fieldName)
-          case Schema.FLOAT64_SCHEMA | Schema.OPTIONAL_FLOAT64_SCHEMA => struct.getFloat64(fieldName)
-          case Schema.INT8_SCHEMA | Schema.OPTIONAL_INT8_SCHEMA => struct.getInt8(fieldName)
-          case Schema.INT16_SCHEMA | Schema.OPTIONAL_INT16_SCHEMA => struct.getInt16(fieldName)
-          case Schema.INT32_SCHEMA | Schema.OPTIONAL_INT32_SCHEMA => struct.getInt32(fieldName)
-          case Schema.INT64_SCHEMA | Schema.OPTIONAL_INT64_SCHEMA => struct.getInt64(fieldName)
-          case Schema.STRING_SCHEMA | Schema.OPTIONAL_STRING_SCHEMA => struct.getString(fieldName)
+        val v = field.schema().`type`() match {
+          case Schema.Type.BOOLEAN => struct.getBoolean(fieldName)
+          case Schema.Type.BYTES => struct.getBytes(fieldName)
+          case Schema.Type.FLOAT32 => struct.getFloat32(fieldName)
+          case Schema.Type.FLOAT64 => struct.getFloat64(fieldName)
+          case Schema.Type.INT8 => struct.getInt8(fieldName)
+          case Schema.Type.INT16 => struct.getInt16(fieldName)
+          case Schema.Type.INT32 => struct.getInt32(fieldName)
+          case Schema.Type.INT64 => struct.getInt64(fieldName)
+          case Schema.Type.STRING => struct.getString(fieldName)
           case other =>
             field.schema().name() match {
               case Decimal.LOGICAL_NAME => Decimal.toLogical(field.schema, value.asInstanceOf[Array[Byte]])

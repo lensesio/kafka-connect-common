@@ -33,11 +33,11 @@ allprojects {
         scalaCheck = '1.11.1'
         scalaTest = '2.2.6'
         junit = '4.11'
-        confluentVersion = '3.0.1'
+        confluentVersion = '3.1.1'
         scalaLoggingVersion = '2.1.2'
-        kafkaVersion = '0.10.0.1'
+        kafkaVersion = '0.10.1.0'
         mockitoVersion = '1.10.19'
-        avroVersion = '1.8.0'
+        avroVersion = '1.8.1'
         avro4sVersion = "1.6.2"
         jacksonxmlVersion = '2.6.5'
         slf4jVersion = "1.7.7"
