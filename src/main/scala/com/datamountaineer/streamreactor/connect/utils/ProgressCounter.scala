@@ -34,7 +34,7 @@ case class ProgressCounter(periodMillis: Int) extends StrictLogging {
   private var timestamp: Long = 0
   private val counter = mutable.Map.empty[String, Long]
 
-  def update(records: Seq[ConnectRecord]): Unit = {
+  def update[T <: ConnectRecord[T]](records: Seq[ConnectRecord[T]]): Unit = {
     val newTimestamp = System.currentTimeMillis()
 
     records.foreach(r => counter.put(r.topic() , counter.getOrElse(r.topic(), 0L) + 1L))

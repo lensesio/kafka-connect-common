@@ -74,7 +74,8 @@ trait ConverterUtil {
     fields
       .filter { case (field, alias) => field != alias }
       .foreach { case (field, alias) =>
-        Option(value.get(field)).foreach { v => value.remove(field)
+        Option(value.get(field)).foreach { v =>
+          value.remove(field)
           value.put(alias, v)
         }
       }
@@ -183,7 +184,7 @@ trait ConverterUtil {
     * @param record A ConnectRecord to extract the payload value from
     * @return A json string for the payload of the record
     **/
-  def convertValueToJson(record: ConnectRecord): JsonNode = {
+  def convertValueToJson[T <: ConnectRecord[T]](record: ConnectRecord[T]): JsonNode = {
     simpleJsonConverter.fromConnectData(record.valueSchema(), record.value())
   }
 
@@ -193,7 +194,7 @@ trait ConverterUtil {
     * @param record A ConnectRecord to extract the payload value from
     * @return A json string for the payload of the record
     **/
-  def convertKeyToJson(record: ConnectRecord): JsonNode = {
+  def convertKeyToJson[T <: ConnectRecord[T]](record: ConnectRecord[T]): JsonNode = {
     simpleJsonConverter.fromConnectData(record.keySchema(), record.key())
   }
 
@@ -225,7 +226,7 @@ trait ConverterUtil {
     * @param record ConnectRecord to convert
     * @return a GenericRecord
     **/
-  def convertValueToGenericAvro(record: ConnectRecord): GenericRecord = {
+  def convertValueToGenericAvro[T <: ConnectRecord[T]](record: ConnectRecord[T]): GenericRecord = {
     val avro = avroData.fromConnectData(record.valueSchema(), record.value())
     avro.asInstanceOf[GenericRecord]
   }
