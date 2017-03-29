@@ -3,7 +3,7 @@
 Kafka Connect Common is in Maven, include it in your connector.
 
 
-#Releases
+# Releases
 
 
 | Version | Confluent Version |Kafka|
