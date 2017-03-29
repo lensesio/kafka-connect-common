@@ -30,6 +30,7 @@ import org.json4s.jackson.JsonMethods._
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
+import scala.collection.mutable
 import scala.util.Try
 
 /**
@@ -85,18 +86,20 @@ trait ConverterUtil {
   /**
     * Handles scenarios where the sink record schema is set to string and the payload is json
     *
-    * @param record           - the sink record instance
-    * @param fields           - fields to include/select
-    * @param ignoreFields     - fields to ignore/remove
-    * @param key              -if true it targets the sinkrecord key; otherwise it uses the sinkrecord.value
-    * @param includeAllFields - if false it will remove the fields not present in the fields parameter
+    * @param record              - the sink record instance
+    * @param fields              - fields to include/select
+    * @param ignoreFields        - fields to ignore/remove
+    * @param key                 -if true it targets the sinkrecord key; otherwise it uses the sinkrecord.value
+    * @param includeAllFields    - if false it will remove the fields not present in the fields parameter
+    * @param ignoredFieldsValues - We need to retain the removed fields; in influxdb we might choose to set tags from ignored fields
     * @return
     */
   def convertStringSchemaAndJson(record: SinkRecord,
                                  fields: Map[String, String],
                                  ignoreFields: Set[String] = Set.empty[String],
                                  key: Boolean = false,
-                                 includeAllFields: Boolean = true): JValue = {
+                                 includeAllFields: Boolean = true,
+                                 ignoredFieldsValues: Option[mutable.Map[String, Any]] = None): JValue = {
 
     val schema = if (key) record.keySchema() else record.valueSchema()
     require(schema != null && schema.`type`() == Schema.STRING_SCHEMA.`type`(), s"$schema is not handled. Expecting Schema.String")
@@ -111,7 +114,19 @@ trait ConverterUtil {
 
     val withFieldsRemoved = ignoreFields.foldLeft(json) { case (j, ignored) =>
       j.removeField {
-        case (`ignored`, _) => true
+        case (`ignored`, v) =>
+          ignoredFieldsValues.foreach { map =>
+            val value = v match {
+              case JString(s) => s
+              case JDouble(d) => d
+              case JInt(i) => i
+              case JLong(l) => l
+              case JDecimal(d) => d
+              case other => null
+            }
+            map += ignored -> value
+          }
+          true
         case _ => false
       }
     }
