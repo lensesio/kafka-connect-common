@@ -26,7 +26,7 @@ import org.apache.kafka.connect.source.SourceRecord
 
 
 class JsonSimpleConverter extends Converter {
-  override def convert(kafkaTopic: String, sourceTopic: String, messageId: Int, bytes: Array[Byte]): SourceRecord = {
+  override def convert(kafkaTopic: String, sourceTopic: String, messageId: String, bytes: Array[Byte]): SourceRecord = {
     require(bytes != null, s"Invalid $bytes parameter")
     val json = new String(bytes, Charset.defaultCharset)
     val schemaAndValue = JsonSimpleConverter.convert(sourceTopic, json)

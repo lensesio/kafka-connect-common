@@ -33,7 +33,7 @@ class JsonConverterWithSchemaEvolution extends Converter {
   implicit private var latestSchema: Option[Schema] = None
 
 
-  override def convert(kafkaTopic: String, mqttSource: String, messageId: Int, bytes: Array[Byte]): SourceRecord = {
+  override def convert(kafkaTopic: String, mqttSource: String, messageId: String, bytes: Array[Byte]): SourceRecord = {
     require(bytes != null, s"Invalid $bytes parameter")
     val json = new String(bytes, Charset.defaultCharset)
     val schemaAndValue = JsonConverterWithSchemaEvolution.convert(mqttSource, json)

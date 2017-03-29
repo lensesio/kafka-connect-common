@@ -34,17 +34,17 @@ class JsonConverterWithSchemaEvolutionTest extends WordSpec with Matchers {
     "throw IllegalArgumentException if payload is null" in {
       intercept[IllegalArgumentException] {
         val converter = new JsonConverterWithSchemaEvolution
-        val record = converter.convert("topic", "somesource", 1000, null)
+        val record = converter.convert("topic", "somesource", "1000", null)
       }
     }
 
     "handle a simple json" in {
       val json = JacksonJson.toJson(Car("LaFerrari", "Ferrari", 2015, 963, 0.0001))
       val converter = new JsonConverterWithSchemaEvolution
-      val record = converter.convert(topic, sourceTopic, 100, json.getBytes)
+      val record = converter.convert(topic, sourceTopic, "100", json.getBytes)
       record.keySchema() shouldBe MsgKey.schema
       record.key().asInstanceOf[Struct].getString("topic") shouldBe sourceTopic
-      record.key().asInstanceOf[Struct].getInt32("id") shouldBe 100
+      record.key().asInstanceOf[Struct].getString("id") shouldBe "100"
 
       val schema =
         new Schema.Parser().parse(

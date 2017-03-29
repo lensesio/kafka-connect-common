@@ -18,7 +18,7 @@ package com.datamountaineer.streamreactor.connect.converters
 import com.sksamuel.avro4s.{RecordFormat, SchemaFor}
 import io.confluent.connect.avro.AvroData
 
-case class MsgKey(topic: String, id: Int)
+case class MsgKey(topic: String, id: String)
 
 object MsgKey {
   private val recordFormat = RecordFormat[MsgKey]
@@ -26,5 +26,5 @@ object MsgKey {
   private val avroData = new AvroData(1)
   val schema = avroData.toConnectSchema(avroSchema)
 
-  def getStruct(topic: String, id: Int) = avroData.toConnectData(avroSchema, recordFormat.to(MsgKey(topic, id))).value()
+  def getStruct(topic: String, id: String) = avroData.toConnectData(avroSchema, recordFormat.to(MsgKey(topic, id))).value()
 }

@@ -79,7 +79,7 @@ class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
       val schema = SchemaBuilder.builder().stringType()
       initializeConverter(converter, schema)
 
-      val sourceRecord = converter.convert(topic, sourceTopic, 100, null)
+      val sourceRecord = converter.convert(topic, sourceTopic, "100", null)
 
       sourceRecord.key() shouldBe null
       sourceRecord.keySchema() shouldBe null
@@ -95,7 +95,7 @@ class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
         val converter = new AvroConverter
         initializeConverter(converter, avro.getSchema)
 
-        val sourceRecord = converter.convert(topic, sourceTopic, 1001, write(avro).map(b => (b + 1) % 255).map(_.toByte))
+        val sourceRecord = converter.convert(topic, sourceTopic, "1001", write(avro).map(b => (b + 1) % 255).map(_.toByte))
 
         sourceRecord.key() shouldBe null
         sourceRecord.keySchema() shouldBe null
@@ -116,9 +116,9 @@ class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
       val converter = new AvroConverter
       initializeConverter(converter, avro.getSchema)
 
-      val sourceRecord = converter.convert(topic, sourceTopic, 1001, write(avro))
+      val sourceRecord = converter.convert(topic, sourceTopic, "1001", write(avro))
 
-      sourceRecord.key() shouldBe MsgKey.getStruct(sourceTopic, 1001)
+      sourceRecord.key() shouldBe MsgKey.getStruct(sourceTopic, "1001")
       sourceRecord.keySchema() shouldBe MsgKey.schema
 
       val avroData = new AvroData(4)

@@ -34,9 +34,9 @@ class JsonSimpleConverterTest extends WordSpec with Matchers {
       val car = Car("LaFerrari", "Ferrari", 2015, 963, 0.0001)
       val json = JacksonJson.toJson(car)
       val converter = new JsonSimpleConverter
-      val record = converter.convert(topic, sourceTopic, 100, json.getBytes)
+      val record = converter.convert(topic, sourceTopic, "100", json.getBytes)
       record.keySchema() shouldBe MsgKey.schema
-      record.key() shouldBe MsgKey.getStruct(sourceTopic, 100)
+      record.key() shouldBe MsgKey.getStruct(sourceTopic, "100")
 
       val schema = new Schema.Parser().parse(
         SchemaFor[Car]().toString

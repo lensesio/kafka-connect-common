@@ -32,7 +32,7 @@ class AvroConverter extends Converter {
   private var sourceToSchemaMap: Map[String, AvroSchema] = Map.empty
   private var avroReadersMap: Map[String, GenericDatumReader[GenericRecord]] = Map.empty
 
-  override def convert(kafkaTopic: String, sourceTopic: String, messageId: Int, bytes: Array[Byte]): SourceRecord = {
+  override def convert(kafkaTopic: String, sourceTopic: String, messageId: String, bytes: Array[Byte]): SourceRecord = {
     Option(bytes) match {
       case None =>
         new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
