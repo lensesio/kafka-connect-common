@@ -1,7 +1,24 @@
+/*
+ *  Copyright 2017 Datamountaineer.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.datamountaineer.streamreactor.connect.converters.source
 
 import java.util.Collections
 
+import com.datamountaineer.streamreactor.connect.converters.MsgKey
 import com.sksamuel.avro4s.{RecordFormat, SchemaFor}
 import io.confluent.connect.avro.AvroData
 import org.apache.avro.Schema
@@ -17,17 +34,17 @@ class JsonConverterWithSchemaEvolutionTest extends WordSpec with Matchers {
     "throw IllegalArgumentException if payload is null" in {
       intercept[IllegalArgumentException] {
         val converter = new JsonConverterWithSchemaEvolution
-        val record = converter.convert("topic", "somesource", 1000, null)
+        val record = converter.convert("topic", "somesource", "1000", null)
       }
     }
 
     "handle a simple json" in {
       val json = JacksonJson.toJson(Car("LaFerrari", "Ferrari", 2015, 963, 0.0001))
       val converter = new JsonConverterWithSchemaEvolution
-      val record = converter.convert(topic, sourceTopic, 100, json.getBytes)
+      val record = converter.convert(topic, sourceTopic, "100", json.getBytes)
       record.keySchema() shouldBe MsgKey.schema
       record.key().asInstanceOf[Struct].getString("topic") shouldBe sourceTopic
-      record.key().asInstanceOf[Struct].getInt32("id") shouldBe 100
+      record.key().asInstanceOf[Struct].getString("id") shouldBe "100"
 
       val schema =
         new Schema.Parser().parse(

@@ -1,18 +1,18 @@
-/**
-  * Copyright 2016 Datamountaineer.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  * http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  **/
+/*
+ *  Copyright 2017 Datamountaineer.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 
 package com.datamountaineer.streamreactor.connect.schemas
 
@@ -30,6 +30,7 @@ import org.json4s.jackson.JsonMethods._
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
+import scala.collection.mutable
 import scala.util.Try
 
 /**
@@ -74,7 +75,8 @@ trait ConverterUtil {
     fields
       .filter { case (field, alias) => field != alias }
       .foreach { case (field, alias) =>
-        Option(value.get(field)).foreach { v => value.remove(field)
+        Option(value.get(field)).foreach { v =>
+          value.remove(field)
           value.put(alias, v)
         }
       }
@@ -84,18 +86,20 @@ trait ConverterUtil {
   /**
     * Handles scenarios where the sink record schema is set to string and the payload is json
     *
-    * @param record           - the sink record instance
-    * @param fields           - fields to include/select
-    * @param ignoreFields     - fields to ignore/remove
-    * @param key              -if true it targets the sinkrecord key; otherwise it uses the sinkrecord.value
-    * @param includeAllFields - if false it will remove the fields not present in the fields parameter
+    * @param record              - the sink record instance
+    * @param fields              - fields to include/select
+    * @param ignoreFields        - fields to ignore/remove
+    * @param key                 -if true it targets the sinkrecord key; otherwise it uses the sinkrecord.value
+    * @param includeAllFields    - if false it will remove the fields not present in the fields parameter
+    * @param ignoredFieldsValues - We need to retain the removed fields; in influxdb we might choose to set tags from ignored fields
     * @return
     */
   def convertStringSchemaAndJson(record: SinkRecord,
                                  fields: Map[String, String],
                                  ignoreFields: Set[String] = Set.empty[String],
                                  key: Boolean = false,
-                                 includeAllFields: Boolean = true): JValue = {
+                                 includeAllFields: Boolean = true,
+                                 ignoredFieldsValues: Option[mutable.Map[String, Any]] = None): JValue = {
 
     val schema = if (key) record.keySchema() else record.valueSchema()
     require(schema != null && schema.`type`() == Schema.STRING_SCHEMA.`type`(), s"$schema is not handled. Expecting Schema.String")
@@ -110,7 +114,19 @@ trait ConverterUtil {
 
     val withFieldsRemoved = ignoreFields.foldLeft(json) { case (j, ignored) =>
       j.removeField {
-        case (`ignored`, _) => true
+        case (`ignored`, v) =>
+          ignoredFieldsValues.foreach { map =>
+            val value = v match {
+              case JString(s) => s
+              case JDouble(d) => d
+              case JInt(i) => i
+              case JLong(l) => l
+              case JDecimal(d) => d
+              case other => null
+            }
+            map += ignored -> value
+          }
+          true
         case _ => false
       }
     }
@@ -173,7 +189,7 @@ trait ConverterUtil {
       fields.foreach({ case (name, alias) => newStruct.put(alias, value.get(name)) })
 
       new SinkRecord(record.topic(), record.kafkaPartition(), Schema.STRING_SCHEMA, "key", extractedSchema, newStruct,
-        record.kafkaOffset())
+        record.kafkaOffset(), record.timestamp(), record.timestampType())
     }
   }
 
@@ -183,7 +199,7 @@ trait ConverterUtil {
     * @param record A ConnectRecord to extract the payload value from
     * @return A json string for the payload of the record
     **/
-  def convertValueToJson(record: ConnectRecord): JsonNode = {
+  def convertValueToJson[T <: ConnectRecord[T]](record: ConnectRecord[T]): JsonNode = {
     simpleJsonConverter.fromConnectData(record.valueSchema(), record.value())
   }
 
@@ -193,7 +209,7 @@ trait ConverterUtil {
     * @param record A ConnectRecord to extract the payload value from
     * @return A json string for the payload of the record
     **/
-  def convertKeyToJson(record: ConnectRecord): JsonNode = {
+  def convertKeyToJson[T <: ConnectRecord[T]](record: ConnectRecord[T]): JsonNode = {
     simpleJsonConverter.fromConnectData(record.keySchema(), record.key())
   }
 
@@ -225,7 +241,7 @@ trait ConverterUtil {
     * @param record ConnectRecord to convert
     * @return a GenericRecord
     **/
-  def convertValueToGenericAvro(record: ConnectRecord): GenericRecord = {
+  def convertValueToGenericAvro[T <: ConnectRecord[T]](record: ConnectRecord[T]): GenericRecord = {
     val avro = avroData.fromConnectData(record.valueSchema(), record.value())
     avro.asInstanceOf[GenericRecord]
   }

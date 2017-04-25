@@ -1,3 +1,19 @@
+/*
+ *  Copyright 2017 Datamountaineer.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 buildscript {
     repositories {
         jcenter()
@@ -33,9 +49,9 @@ allprojects {
         scalaCheck = '1.11.1'
         scalaTest = '2.2.6'
         junit = '4.11'
-        confluentVersion = '3.1.1'
+        confluentVersion = '3.2.0'
         scalaLoggingVersion = '2.1.2'
-        kafkaVersion = '0.10.1.0'
+        kafkaVersion = '0.10.2.0'
         mockitoVersion = '1.10.19'
         avroVersion = '1.8.1'
         avro4sVersion = "1.6.2"
@@ -58,8 +74,8 @@ allprojects {
     }
 
     dependencies {
-        compile "org.scala-lang:scala-library:$scala"
-        compile "org.scala-lang:scala-compiler:$scala"
+        provided "org.scala-lang:scala-library:$scala"
+        provided "org.scala-lang:scala-compiler:$scala"
         provided "com.typesafe.scala-logging:scala-logging-slf4j_$scalaMajorVersion:$scalaLoggingVersion"
         provided "com.google.guava:guava:$guavaVersion"
         provided "org.apache.kafka:connect-json:$kafkaVersion"
