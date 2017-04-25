@@ -69,26 +69,45 @@ case class StructFieldsExtractor(includeAllFields: Boolean, fieldsAliasMap: Map[
       case None => None
       case Some(value) =>
         val fieldName = field.name()
-        val v = field.schema().`type`() match {
-          case Schema.Type.BOOLEAN => struct.getBoolean(fieldName)
-          case Schema.Type.BYTES => struct.getBytes(fieldName)
-          case Schema.Type.FLOAT32 => struct.getFloat32(fieldName)
-          case Schema.Type.FLOAT64 => struct.getFloat64(fieldName)
-          case Schema.Type.INT8 => struct.getInt8(fieldName)
-          case Schema.Type.INT16 => struct.getInt16(fieldName)
-          case Schema.Type.INT32 => struct.getInt32(fieldName)
-          case Schema.Type.INT64 => struct.getInt64(fieldName)
-          case Schema.Type.STRING => struct.getString(fieldName)
-          case other =>
-            field.schema().name() match {
-              case Decimal.LOGICAL_NAME => Decimal.toLogical(field.schema, value.asInstanceOf[Array[Byte]])
-              case Date.LOGICAL_NAME => StructFieldsExtractor.DateFormat.format(Date.toLogical(field.schema, value.asInstanceOf[Int]))
-              case Time.LOGICAL_NAME => StructFieldsExtractor.TimeFormat.format(Time.toLogical(field.schema, value.asInstanceOf[Int]))
-              case Timestamp.LOGICAL_NAME => StructFieldsExtractor.DateFormat.format(Timestamp.toLogical(field.schema, value.asInstanceOf[Long]))
-              case _ => sys.error(s"$other is not a recognized schema")
+        Option(field.schema().name()).collect {
+          case Decimal.LOGICAL_NAME =>
+            value match {
+              case bd: BigDecimal => bd
+              case array: Array[Byte] => Decimal.toLogical(field.schema, value.asInstanceOf[Array[Byte]])
             }
+          case Date.LOGICAL_NAME =>
+            value.asInstanceOf[Any] match {
+              case d: java.util.Date => d
+              case i: Int => Date.toLogical(field.schema, i)
+              case _ => throw new IllegalArgumentException(s"Can't convert $value to Date for schema:${field.schema().`type`()}")
+            }
+          case Time.LOGICAL_NAME =>
+            value.asInstanceOf[Any] match {
+              case i: Int => Time.toLogical(field.schema, value.asInstanceOf[Int])
+              case d: java.util.Date => d
+              case _ => throw new IllegalArgumentException(s"Can't convert $value to Date for schema:${field.schema().`type`()}")
+            }
+          case Timestamp.LOGICAL_NAME =>
+            value.asInstanceOf[Any] match {
+              case l: Long => Timestamp.toLogical(field.schema, l)
+              case d: java.util.Date => d
+              case _ => throw new IllegalArgumentException(s"Can't convert $value to Date for schema:${field.schema().`type`()}")
+            }
+        }.orElse {
+          val v = field.schema().`type`() match {
+            case Schema.Type.BOOLEAN => struct.getBoolean(fieldName)
+            case Schema.Type.BYTES => struct.getBytes(fieldName)
+            case Schema.Type.FLOAT32 => struct.getFloat32(fieldName)
+            case Schema.Type.FLOAT64 => struct.getFloat64(fieldName)
+            case Schema.Type.INT8 => struct.getInt8(fieldName)
+            case Schema.Type.INT16 => struct.getInt16(fieldName)
+            case Schema.Type.INT32 => struct.getInt32(fieldName)
+            case Schema.Type.INT64 => struct.getInt64(fieldName)
+            case Schema.Type.STRING => struct.getString(fieldName)
+            case other => sys.error(s"$other is not a recognized schema")
+          }
+          Some(v)
         }
-        Some(v)
     }
   }
 }

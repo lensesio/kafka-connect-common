@@ -1,6 +1,9 @@
 package com.datamountaineer.streamreactor.connect.schemas
 
-import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+
+import org.apache.kafka.connect.data.{Date, Schema, SchemaBuilder, Struct}
 import org.scalatest.{Matchers, WordSpec}
 
 class StructFieldExtractorTest extends WordSpec with Matchers {
@@ -64,4 +67,33 @@ class StructFieldExtractorTest extends WordSpec with Matchers {
       map.size shouldBe 2
     }
   }
+
+  "handle Date fieldds" in {
+    val dateSchema = Date.builder().build()
+    val schema = SchemaBuilder.struct().name("com.example.Person")
+      .field("firstName", Schema.STRING_SCHEMA)
+      .field("lastName", Schema.STRING_SCHEMA)
+      .field("age", Schema.INT32_SCHEMA)
+      .field("date", dateSchema).build()
+
+    val date =  java.sql.Date.valueOf("2017-04-25")
+    val struct = new Struct(schema)
+      .put("firstName", "Alex")
+      .put("lastName", "Smith")
+      .put("age", 30)
+      .put("date", date)
+
+    val map1 = new StructFieldsExtractor(false, Map("date" -> "date")).get(struct).toMap
+    map1.get("date").get shouldBe date
+    map1.size shouldBe 1
+
+    val d = Date.toLogical(dateSchema, 10000)
+    struct.put("date", d)
+
+    val map2 = new StructFieldsExtractor(false, Map("date" -> "date")).get(struct).toMap
+    map2.get("date").get shouldBe d
+    map2.size shouldBe 1
+
+  }
+
 }
