@@ -52,45 +52,45 @@ libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "0.7.5"
 # kafka-connect-common
 Common components used across the datamountaineer kafka connect connectors.
 
-##Packages
+## Packages
 
-###Config
+### Config
 
-####SSLConfigConext
+#### SSLConfigConext
 Contains class for SSL Context configuration for supplied trust and keystores.
 
-###Offsets
+### Offsets
 
 The offset handler retrieves, from Kafka the stored offset map per source partition.
 
-###Queues
+### Queues
 
 Helper methods to drain LinkedBlockingQueues.
 
-###Sink
+### Sink
 
 Contains Writer and KeyBuilder classes.
 
-###DbWriter
+### DbWriter
 
 Defines the contract for inserting a new row for the connect sink record.
 
-####KeyBuilder
+#### KeyBuilder
 
 * Builds the new record key for the given connect SinkRecord.
 * Builds a new key from the payload fields specified.
 
-###Schemas
+### Schemas
 
 * RestService to integrate with the Schema Registry
 
-####PayloadFields
+#### PayloadFields
 Works out the fields and their mappings to be used when inserting a new row.
 
-###ConvertUtil
+### ConvertUtil
 
 Converts source and sink records to JSON and Avro and back.
 
-###StructFieldsExtractor
+### StructFieldsExtractor
 
 Extracts fields from a SinkRecord Struct based on a specified set of provided columns.
