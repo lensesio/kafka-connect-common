@@ -39,7 +39,7 @@ case class ProgressCounter(periodMillis: Int = 60000) extends StrictLogging {
 
     records.foreach(r => counter.put(r.topic(), counter.getOrElse(r.topic(), 0L) + 1L))
 
-    if (counter.nonEmpty && (newTimestamp - timestamp) >= periodMillis && records.nonEmpty) {
+    if ((newTimestamp - timestamp) >= periodMillis && records.nonEmpty) {
       counter.foreach({ case (k, v) => logger.info(s"Delivered $v records for $k since $startTime") })
       counter.empty
       timestamp = newTimestamp

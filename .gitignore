@@ -3,3 +3,6 @@
 /.idea
 # sbt specific
 # Scala-IDE specific
+/.settings/
+/.classpath
+/.project

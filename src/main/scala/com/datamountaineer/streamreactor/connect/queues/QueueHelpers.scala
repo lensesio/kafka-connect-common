@@ -21,6 +21,7 @@ import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 
 import com.google.common.collect.Queues
 import com.typesafe.scalalogging.slf4j.StrictLogging
+import org.apache.kafka.connect.source.SourceRecord
 
 /**
   * Created by r on 3/1/16.
@@ -30,6 +31,26 @@ object QueueHelpers extends StrictLogging {
   implicit class LinkedBlockingQueueExtension[T](val lbq: LinkedBlockingQueue[T]) extends AnyVal {
     def drainWithTimeoutTo(collection: util.Collection[_ >: T], maxElements: Int, timeout: Long, unit: TimeUnit): Int = {
       Queues.drain[T](lbq, collection, maxElements, timeout, unit)
+    }
+  }
+
+  def drainWithTimeoutNoGauva(records: util.ArrayList[SourceRecord], batchSize: Int, lingerTimeout: Long, queue: LinkedBlockingQueue[SourceRecord]) = {
+    var added = 0
+    val deadline = System.nanoTime() + TimeUnit.NANOSECONDS.toNanos(lingerTimeout)
+
+    //wait for batch size or linger, which ever is first
+    while (added < batchSize) {
+      added += queue.drainTo(records, batchSize - added)
+      //still not at batch size, poll with timeout
+      if (added < batchSize) {
+        val e = queue.poll(deadline - System.nanoTime(), TimeUnit.NANOSECONDS)
+        e match {
+          case null => added = batchSize
+          case _ =>
+            records.add(e)
+            added += 1
+        }
+      }
     }
   }
 
@@ -44,7 +65,7 @@ object QueueHelpers extends StrictLogging {
   def drainQueueWithTimeOut[T](queue: LinkedBlockingQueue[T], batchSize: Int, timeOut: Long) = {
     val l = new util.ArrayList[T]()
     logger.debug(s"Found ${queue.size()}. Draining entries to batchSize ${batchSize}.")
-    queue.drainWithTimeoutTo(l, batchSize, (timeOut * 1E9).toLong, TimeUnit.NANOSECONDS)
+    queue.drainWithTimeoutTo(l, batchSize, timeOut, TimeUnit.MILLISECONDS)
     l
   }
 
