@@ -43,12 +43,12 @@ object QueueHelpers extends StrictLogging {
       added += queue.drainTo(records, batchSize - added)
       //still not at batch size, poll with timeout
       if (added < batchSize) {
-        val e = queue.poll(deadline - System.nanoTime(), TimeUnit.NANOSECONDS)
-        e match {
-          case null => added = batchSize
-          case _ =>
-            records.add(e)
+        val record = queue.poll(deadline - System.nanoTime(), TimeUnit.NANOSECONDS)
+        record match {
+          case s: SourceRecord =>
+            records.add(s)
             added += 1
+          case _ => added = batchSize
         }
       }
     }
