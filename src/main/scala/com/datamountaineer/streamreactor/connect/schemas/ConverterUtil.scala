@@ -164,7 +164,7 @@ trait ConverterUtil {
     }
 
 
-    if (fields.isEmpty && ignoreFields.isEmpty) {
+    if ((fields.isEmpty && ignoreFields.isEmpty) || (ignoreFields.isEmpty && fields.head._1.equals("*"))) {
       record
     } else {
       val currentSchema = if (key) record.keySchema() else record.valueSchema()

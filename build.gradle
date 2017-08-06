@@ -22,9 +22,9 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.github.maiflai:gradle-scalatest:0.14'
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
-        classpath 'net.researchgate:gradle-release:2.3.4'
+        classpath 'com.github.maiflai:gradle-scalatest:0.16'
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.9.0'
+        classpath 'net.researchgate:gradle-release:2.6.0'
     }
 }
 
@@ -49,18 +49,18 @@ allprojects {
         scalaCheck = '1.11.1'
         scalaTest = '2.2.6'
         junit = '4.11'
-        confluentVersion = '3.2.1'
+        confluentVersion = '3.2.2'
         scalaLoggingVersion = '2.1.2'
         kafkaVersion = '0.10.2.1'
         mockitoVersion = '1.10.19'
-        avroVersion = '1.8.1'
+        avroVersion = '1.8.2'
         avro4sVersion = "1.6.4"
         jacksonxmlVersion = '2.6.5'
         slf4jVersion = "1.7.7"
         guavaVersion = "18.0"
         json4sVersion = "3.4.1"
-        kcqlVersion = "1.0.5"
-        kcql2Version =  "2.0.16"
+        kcqlVersion =  "2.1"
+        smt = "0.1"
     }
 
     repositories {
@@ -87,10 +87,7 @@ allprojects {
         compile "com.sksamuel.avro4s:avro4s-core_$scalaMajorVersion:$avro4sVersion"
         compile "org.json4s:json4s-native_$scalaMajorVersion:$json4sVersion"
         compile "org.json4s:json4s-jackson_$scalaMajorVersion:$json4sVersion"
-
-//        compile("com.datamountaineer:kcql:$kcql2Version") {
-//            exclude group: "com.google.guava", module: "guava"
-//        }
+        compile("com.landoop:kafka-connect-smt_2.11:$smt")
 
         compile("com.datamountaineer:kcql:$kcqlVersion") {
             exclude group: "com.google.guava", module: "guava"

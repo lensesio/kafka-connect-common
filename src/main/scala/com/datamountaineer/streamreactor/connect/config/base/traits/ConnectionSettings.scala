@@ -25,17 +25,15 @@ import com.datamountaineer.streamreactor.connect.config.base.const.TraitConfigCo
 import org.apache.kafka.common.config.ConfigException
 
 trait ConnectionSettings extends BaseSettings {
-  val bindHostConst = s"$connectorPrefix.$BIND_HOST_SUFFIX"
-  val bindPortConst = s"$connectorPrefix.$BIND_PORT_SUFFIX"
   val uriConst = s"$connectorPrefix.$URI_SUFFIX"
   val schemaRegistryConst = s"$connectorPrefix.$SCHEMA_REGISTRY_SUFFIX"
   val urlConst = s"$connectorPrefix.$URL_SUFFIX"
   val hostConst = s"$connectorPrefix.$CONNECTION_HOST_SUFFIX"
   val hostsConst = s"$connectorPrefix.$CONNECTION_HOSTS_SUFFIX"
+  val portConst = s"$connectorPrefix.$CONNECTION_PORT_SUFFIX"
+  val portsConst = s"$connectorPrefix.$CONNECTION_PORTS_SUFFIX"
 
-
-  def getBindPort = getInt(bindPortConst)
-  def getBindHost = getString(bindHostConst)
+  def getPort = getInt(portConst)
   def getUri = getString(uriConst)
   def getSchemaRegistryUrl = getString(schemaRegistryConst)
 
