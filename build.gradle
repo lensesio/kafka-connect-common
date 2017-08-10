@@ -79,7 +79,7 @@ allprojects {
         provided "org.scala-lang:scala-library:$scala"
         provided "org.scala-lang:scala-compiler:$scala"
         provided "com.typesafe.scala-logging:scala-logging-slf4j_$scalaMajorVersion:$scalaLoggingVersion"
-        provided "com.google.guava:guava:$guavaVersion"
+        //provided "com.google.guava:guava:$guavaVersion"
         provided "org.apache.kafka:connect-json:$kafkaVersion"
         provided "io.confluent:kafka-connect-avro-converter:$confluentVersion"
         provided "io.confluent:kafka-schema-registry:$confluentVersion"
@@ -87,7 +87,11 @@ allprojects {
         compile "com.sksamuel.avro4s:avro4s-core_$scalaMajorVersion:$avro4sVersion"
         compile "org.json4s:json4s-native_$scalaMajorVersion:$json4sVersion"
         compile "org.json4s:json4s-jackson_$scalaMajorVersion:$json4sVersion"
-        compile("com.landoop:kafka-connect-smt_2.11:$smt")
+        compile("com.landoop:kafka-connect-smt_2.11:$smt"){
+            exclude group: "com.google.protobuf"
+            exclude group: "org.apache.calcite", module:"calcite-linq4j"
+            exclude group: "org.apache.httpcomponents"
+        }
 
         compile("com.datamountaineer:kcql:$kcqlVersion") {
             exclude group: "com.google.guava", module: "guava"
