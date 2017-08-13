@@ -28,7 +28,7 @@ import org.apache.avro.generic.GenericRecord
 import org.apache.avro.io.EncoderFactory
 import org.apache.avro.specific.SpecificDatumWriter
 import org.apache.avro.{AvroRuntimeException, Schema, SchemaBuilder}
-import org.apache.kafka.common.record.ByteBufferOutputStream
+import org.apache.kafka.common.utils.ByteBufferOutputStream
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 
 class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
