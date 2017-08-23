@@ -31,8 +31,8 @@ object SinkRecordToJson extends ConverterUtil {
   private val mapper = new ObjectMapper()
 
   def apply(record: SinkRecord,
-            fields : Map[String, Map[String, String]],
-            ignoreFields : Map[String, Set[String]]): String = {
+            fields: Map[String, Map[String, String]],
+            ignoreFields: Map[String, Set[String]]): String = {
 
     val schema = record.valueSchema()
     val value = record.value()
@@ -48,7 +48,7 @@ object SinkRecordToJson extends ConverterUtil {
           //not ideal; but the implementation is hashmap anyway
           mapper.writeValueAsString(extracted)
 
-        case _ => sys.error("For schemaless record only String and Map types are supported")
+        case other => sys.error(s"For schemaless record only String and Map types are supported. Class =${Option(other).map(_.getClass.getCanonicalName).getOrElse("uknown(null)}")}")
       }
     } else {
       schema.`type`() match {
