@@ -18,9 +18,12 @@ package com.datamountaineer.streamreactor.connect.converters.source
 
 import com.datamountaineer.streamreactor.connect.schemas.ConverterUtil
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.landoop.json.sql.JacksonJson
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.sink.SinkRecord
 import org.json4s.jackson.JsonMethods._
+
+import scala.util.Try
 
 /**
   * Created by andrew@datamountaineer.com on 29/12/2016. 
@@ -38,6 +41,9 @@ object SinkRecordToJson extends ConverterUtil {
     val value = record.value()
 
     if (schema == null) {
+      if(value == null){
+        throw new IllegalArgumentException(s"The sink record value is null.(topic=${record.topic()} partition=${record.kafkaPartition()} offset=${record.kafkaOffset()})".stripMargin)
+      }
       //try to take it as string
       value match {
         case map: java.util.Map[_, _] =>
@@ -48,7 +54,12 @@ object SinkRecordToJson extends ConverterUtil {
           //not ideal; but the implementation is hashmap anyway
           mapper.writeValueAsString(extracted)
 
-        case other => sys.error(s"For schemaless record only String and Map types are supported. Class =${Option(other).map(_.getClass.getCanonicalName).getOrElse("uknown(null)}")}")
+        case other => sys.error(
+          s"""
+             |For schemaless record only String and Map types are supported. Class =${Option(other).map(_.getClass.getCanonicalName).getOrElse("unknown(null value)}")}
+             |Record info:
+             |topic=${record.topic()} partition=${record.kafkaPartition()} offset=${record.kafkaOffset()}
+             |${Try(JacksonJson.toJson(value)).getOrElse("")}""".stripMargin)
       }
     } else {
       schema.`type`() match {
