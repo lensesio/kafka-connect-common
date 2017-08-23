@@ -31,18 +31,21 @@ import org.apache.avro.{AvroRuntimeException, Schema, SchemaBuilder}
 import org.apache.kafka.common.utils.ByteBufferOutputStream
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 
+import scala.reflect.io.Path
+
 class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
   private val topic = "topicA"
   private val sourceTopic = "somesource"
   private val folder = new File(UUID.randomUUID().toString)
   folder.mkdir()
+  val path = Path(folder.getAbsolutePath)
 
   override def beforeAll() = {
 
   }
 
   override def afterAll() = {
-    folder.delete()
+    path.deleteRecursively()
   }
 
   private def initializeConverter(converter: AvroConverter, schema: Schema) = {
