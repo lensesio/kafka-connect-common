@@ -49,9 +49,9 @@ allprojects {
         scalaCheck = '1.11.1'
         scalaTest = '2.2.6'
         junit = '4.11'
-        confluentVersion = '3.3.0'
+        confluentVersion = '3.2.2'
         scalaLoggingVersion = '2.1.2'
-        kafkaVersion = '0.11.0.0'
+        kafkaVersion = '0.10.2.1'
         mockitoVersion = '1.10.19'
         avroVersion = '1.8.2'
         avro4sVersion = "1.6.4"
