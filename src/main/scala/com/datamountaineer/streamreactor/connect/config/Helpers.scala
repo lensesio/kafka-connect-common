@@ -91,25 +91,27 @@ object Helpers extends StrictLogging {
       .map(a => {if (a.length == 1) (a(0), a(0)) else (a(0), a(1)) }).toMap
   }
 
+
   def checkInputTopics(kcqlConstant: String, props: Map[String, String]) = {
-    val topics = props.get("topics").get.split(",").toSet
+    val topics = props.get("topics").get.split(",").map(t => t.trim).toSet
     val raw = props.get(kcqlConstant).get
     if (raw.isEmpty) {
       throw new ConfigException(s"Missing $kcqlConstant")
     }
     val kcql = raw.split(";").map(r => Kcql.parse(r)).toSet
     val sources = kcql.map(k => k.getSource)
-
     val res = topics.subsetOf(sources)
 
     if (!res) {
-      throw new ConfigException(s"Mandatory `topics` configuration contains topics not set in $kcqlConstant")
+      val missing = topics.diff(sources)
+      throw new ConfigException(s"Mandatory `topics` configuration contains topics not set in $kcqlConstant: ${missing}")
     }
 
     val res1 = sources.subsetOf(topics)
 
     if (!res1) {
-      throw new ConfigException(s"$kcqlConstant configuration contains topics not set in mandatory `topic` configuration")
+      val missing = topics.diff(sources)
+      throw new ConfigException(s"$kcqlConstant configuration contains topics not set in mandatory `topic` configuration: ${missing}")
     }
 
     true

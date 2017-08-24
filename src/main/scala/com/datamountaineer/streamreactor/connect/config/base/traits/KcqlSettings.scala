@@ -142,4 +142,28 @@ trait KcqlSettings extends BaseSettings {
   def getIncrementalMode(routes: Seq[Kcql]): Map[String, String] = {
     routes.map(r => (r.getSource, r.getIncrementalMode)).toMap
   }
+
+  def checkInputTopics(props: Map[String, String]) = {
+    val topics = props.get("topics").get.split(",").toSet
+    val raw = props.get(kcqlConstant).get
+    if (raw.isEmpty) {
+      throw new ConfigException(s"Missing $kcqlConstant")
+    }
+    val kcql = raw.split(";").map(r => Kcql.parse(r)).toSet
+    val sources = kcql.map(k => k.getSource)
+
+    val res = topics.subsetOf(sources)
+
+    if (!res) {
+      throw new ConfigException(s"Mandatory `topics` configuration contains topics not set in $kcqlConstant")
+    }
+
+    val res1 = sources.subsetOf(topics)
+
+    if (!res1) {
+      throw new ConfigException(s"$kcqlConstant configuration contains topics not set in mandatory `topic` configuration")
+    }
+
+    true
+  }
 }
