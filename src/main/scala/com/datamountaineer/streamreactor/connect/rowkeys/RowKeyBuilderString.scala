@@ -64,16 +64,17 @@ class StringSinkRecordKeyBuilder extends StringKeyBuilder {
   */
 case class StringStructFieldsStringKeyBuilder(keys: Seq[String],
                                               keyDelimiter: String = ".") extends StringKeyBuilder {
-  private val availableSchemas = Set(
-    Schema.BOOLEAN_SCHEMA, Schema.OPTIONAL_BOOLEAN_SCHEMA,
-    Schema.BYTES_SCHEMA, Schema.OPTIONAL_BYTES_SCHEMA,
-    Schema.FLOAT32_SCHEMA, Schema.OPTIONAL_FLOAT32_SCHEMA,
-    Schema.FLOAT64_SCHEMA, Schema.OPTIONAL_FLOAT64_SCHEMA,
-    Schema.INT8_SCHEMA, Schema.OPTIONAL_INT8_SCHEMA,
-    Schema.INT16_SCHEMA, Schema.OPTIONAL_INT16_SCHEMA,
-    Schema.INT32_SCHEMA, Schema.OPTIONAL_INT32_SCHEMA,
-    Schema.INT64_SCHEMA, Schema.OPTIONAL_INT64_SCHEMA,
-    Schema.STRING_SCHEMA, Schema.OPTIONAL_STRING_SCHEMA)
+  private val availableSchemaTypes = Set(
+    Schema.Type.BOOLEAN,
+    Schema.Type.BYTES,
+    Schema.Type.FLOAT32,
+    Schema.Type.FLOAT64,
+    Schema.Type.INT8,
+    Schema.Type.INT16,
+    Schema.Type.INT32,
+    Schema.Type.INT64,
+    Schema.Type.STRING
+  )
 
   require(keys.nonEmpty, "Invalid keys provided")
 
@@ -94,8 +95,9 @@ case class StringStructFieldsStringKeyBuilder(keys: Seq[String],
     keys.flatMap { case key =>
       val field = schema.field(key)
       val value = struct.get(field)
+
       require(value != null, s"$key field value is null. Non null value is required for the fileds creating the Hbase row key")
-      if (availableSchemas.contains(field.schema())) Some(value.toString)
+      if (availableSchemaTypes.contains(field.schema().`type`())) Some(value.toString)
       else None
     }.mkString(keyDelimiter)
   }

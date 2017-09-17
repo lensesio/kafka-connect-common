@@ -50,6 +50,19 @@ class StringStructFieldsStringKeyBuilderTest extends WordSpec with Matchers {
       StringStructFieldsStringKeyBuilder(Seq("firstName")).build(sinkRecord) shouldBe "Alex"
     }
 
+    "create the row key based on one single field with doc in the struct" in {
+      val firstNameSchema = SchemaBuilder.`type`(Schema.Type.STRING).doc("first name")
+      val schema = SchemaBuilder.struct().name("com.example.Person")
+        .field("firstName", firstNameSchema)
+        .field("age", Schema.INT32_SCHEMA)
+        .field("threshold", Schema.OPTIONAL_FLOAT64_SCHEMA).build()
+
+      val struct = new Struct(schema).put("firstName", "Alex").put("age", 30)
+
+      val sinkRecord = new SinkRecord("sometopic", 1, null, null, schema, struct, 1)
+      StringStructFieldsStringKeyBuilder(Seq("firstName")).build(sinkRecord) shouldBe "Alex"
+    }
+
     "create the row key based on more thant one field in the struct" in {
       val schema = SchemaBuilder.struct().name("com.example.Person")
         .field("firstName", Schema.STRING_SCHEMA)
