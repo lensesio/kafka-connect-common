@@ -26,9 +26,11 @@ object ReadManifest {
   def mainfest(): String =
     s"""
        |StreamReactor-Version:  ${Manifests.read("StreamReactor-Version")}
+       |Kafka-Version:          ${Manifests.read("Kafka-Version")}
        |KCQL-Version:           ${Manifests.read("KCQL-Version")}
        |Git-Repo:               ${Manifests.read("Git-Repo")}
        |Git-Commit-Hash:        ${Manifests.read("Git-Commit-Hash")}
        |Git-Tag:                ${Manifests.read("Git-Tag")}
+       |StreamReactor-Docs:     ${Manifests.read("StreamReactor-Docs")}
     """.stripMargin
 }
