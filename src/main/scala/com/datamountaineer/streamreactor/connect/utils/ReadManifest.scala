@@ -25,10 +25,8 @@ import com.jcabi.manifests.Manifests
 object ReadManifest {
   def mainfest(): String =
     s"""
-       |Implementation-Title:   ${Manifests.read("Implementation-Title")}
-       |Implementation-Version: ${Manifests.read("Implementation-Version")}
-       |Specification-Title:    ${Manifests.read("Specification-Title")}
-       |Specification-Version:  ${Manifests.read("Specification-Version")}
+       |StreamReactor-Version:  ${Manifests.read("StreamReactor-Version")}
+       |KCQL-Version:           ${Manifests.read("KCQL-Version")}
        |Git-Repo:               ${Manifests.read("Git-Repo")}
        |Git-Commit-Hash:        ${Manifests.read("Git-Commit-Hash")}
        |Git-Tag:                ${Manifests.read("Git-Tag")}
