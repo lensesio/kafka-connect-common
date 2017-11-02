@@ -25,12 +25,12 @@ import com.jcabi.manifests.Manifests
 object ReadManifest {
   def mainfest(): String =
     s"""
-       |ImplementationTitle:   ${Manifests.read("ImplementationTitle")}
-       |ImplementationVersion: ${Manifests.read("ImplementationVersion")}
-       |SpecificationTitle:    ${Manifests.read("SpecificationTitle")}
-       |SpecificationVersion:  ${Manifests.read("SpecificationVersion")}
-       |Git-Repo:              ${Manifests.read("Git-Repo")}
-       |Git-Commit-Hash:       ${Manifests.read("Git-Commit-Hash")}
-       |Git-Tag:               ${Manifests.read("Git-Tag")}
+       |Implementation-Title:   ${Manifests.read("Implementation-Title")}
+       |Implementation-Version: ${Manifests.read("Implementation-Version")}
+       |Specification-Title:    ${Manifests.read("Specification-Title")}
+       |Specification-Version:  ${Manifests.read("Specification-Version")}
+       |Git-Repo:               ${Manifests.read("Git-Repo")}
+       |Git-Commit-Hash:        ${Manifests.read("Git-Commit-Hash")}
+       |Git-Tag:                ${Manifests.read("Git-Tag")}
     """.stripMargin
 }
