@@ -59,7 +59,7 @@ allprojects {
         slf4jVersion = "1.7.7"
         guavaVersion = "18.0"
         json4sVersion = "3.4.1"
-        kcqlVersion =  "2.1.5"
+        kcqlVersion =  "2.2.0"
         smt = "0.1"
     }
 
