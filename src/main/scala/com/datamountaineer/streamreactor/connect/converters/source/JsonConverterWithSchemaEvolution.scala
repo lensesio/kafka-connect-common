@@ -33,18 +33,42 @@ class JsonConverterWithSchemaEvolution extends Converter {
   implicit private var latestSchema: Option[Schema] = None
 
 
-  override def convert(kafkaTopic: String, mqttSource: String, messageId: String, bytes: Array[Byte]): SourceRecord = {
+  override def convert(kafkaTopic: String,
+                       mqttSource: String,
+                       messageId: String,
+                       bytes: Array[Byte],
+                       keys: Seq[String] = Seq.empty,
+                       keyDelimiter: String = "."): SourceRecord = {
     require(bytes != null, s"Invalid $bytes parameter")
     val json = new String(bytes, Charset.defaultCharset)
     val schemaAndValue = JsonConverterWithSchemaEvolution.convert(mqttSource, json)
     latestSchema = Some(schemaAndValue.schema())
-    new SourceRecord(null,
-      Collections.singletonMap(JsonConverterWithSchemaEvolution.ConfigKey, latestSchema.map(avroData.fromConnectSchema(_).toString).orNull),
-      kafkaTopic,
-      MsgKey.schema,
-      MsgKey.getStruct(mqttSource, messageId),
-      schemaAndValue.schema(),
-      schemaAndValue.value())
+
+    val value = schemaAndValue.value()
+    value match {
+      case s: Struct if keys.nonEmpty =>
+        val keysValue = keys.map { key =>
+          Option(KeyExtractor.extract(s, key.split('.').toVector)).map(_.toString)
+        }.mkString(keyDelimiter)
+
+        new SourceRecord(null,
+          Collections.singletonMap(JsonConverterWithSchemaEvolution.ConfigKey, latestSchema.map(avroData.fromConnectSchema(_).toString).orNull),
+          kafkaTopic,
+          Schema.STRING_SCHEMA,
+          keysValue,
+          schemaAndValue.schema(),
+          schemaAndValue.value())
+
+      case _ =>
+        new SourceRecord(null,
+          Collections.singletonMap(JsonConverterWithSchemaEvolution.ConfigKey, latestSchema.map(avroData.fromConnectSchema(_).toString).orNull),
+          kafkaTopic,
+          MsgKey.schema,
+          MsgKey.getStruct(mqttSource, messageId),
+          schemaAndValue.schema(),
+          schemaAndValue.value())
+    }
+
   }
 }
 
@@ -75,7 +99,7 @@ object JsonConverterWithSchemaEvolution {
       case JDouble(d) => new SchemaAndValue(Schema.OPTIONAL_FLOAT64_SCHEMA, d)
       case JInt(i) => new SchemaAndValue(Schema.OPTIONAL_INT64_SCHEMA, i.toLong) //on purpose! LONG (we might get later records with long entries)
       case JLong(l) => new SchemaAndValue(Schema.OPTIONAL_INT64_SCHEMA, l)
-      case JNull | JNothing=> new SchemaAndValue(Schema.OPTIONAL_STRING_SCHEMA, null)
+      case JNull | JNothing => new SchemaAndValue(Schema.OPTIONAL_STRING_SCHEMA, null)
       case JString(s) => new SchemaAndValue(Schema.OPTIONAL_STRING_SCHEMA, s)
       case JObject(values) =>
         val builder = SchemaBuilder.struct().name(name)
