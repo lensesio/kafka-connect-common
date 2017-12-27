@@ -22,7 +22,12 @@ import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.source.SourceRecord
 
 class BytesConverter extends Converter {
-  override def convert(kafkaTopic: String, sourceTopic: String, messageId: String, bytes: Array[Byte]): SourceRecord = {
+  override def convert(kafkaTopic: String,
+                       sourceTopic: String,
+                       messageId: String,
+                       bytes: Array[Byte],
+                       keys: Seq[String] = Seq.empty,
+                       keyDelimiter: String = "."): SourceRecord = {
     new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
       null,
       kafkaTopic,

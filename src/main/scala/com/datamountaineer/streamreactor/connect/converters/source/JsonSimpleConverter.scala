@@ -26,17 +26,39 @@ import org.apache.kafka.connect.source.SourceRecord
 
 
 class JsonSimpleConverter extends Converter {
-  override def convert(kafkaTopic: String, sourceTopic: String, messageId: String, bytes: Array[Byte]): SourceRecord = {
+  override def convert(kafkaTopic: String,
+                       sourceTopic: String,
+                       messageId: String,
+                       bytes: Array[Byte],
+                       keys:Seq[String] = Seq.empty,
+                       keyDelimiter:String = "."): SourceRecord = {
     require(bytes != null, s"Invalid $bytes parameter")
     val json = new String(bytes, Charset.defaultCharset)
     val schemaAndValue = JsonSimpleConverter.convert(sourceTopic, json)
-    new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
-      null,
-      kafkaTopic,
-      MsgKey.schema,
-      MsgKey.getStruct(sourceTopic, messageId),
-      schemaAndValue.schema(),
-      schemaAndValue.value())
+    val value = schemaAndValue.value()
+    value match {
+      case s:Struct if keys.nonEmpty =>
+        val keysValue = keys.map { key =>
+          Option(KeyExtractor.extract(s, key.split('.').toVector)).map(_.toString)
+        }.mkString(keyDelimiter)
+
+        new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
+          null,
+          kafkaTopic,
+          Schema.STRING_SCHEMA,
+          s"$sourceTopic:$messageId",
+          schemaAndValue.schema(),
+          schemaAndValue.value())
+      case _=>
+        new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
+          null,
+          kafkaTopic,
+          MsgKey.schema,
+          MsgKey.getStruct(sourceTopic, messageId),
+          schemaAndValue.schema(),
+          schemaAndValue.value())
+    }
+
   }
 }
 

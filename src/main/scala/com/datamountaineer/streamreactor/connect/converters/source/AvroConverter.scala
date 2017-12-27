@@ -23,6 +23,7 @@ import io.confluent.connect.avro.AvroData
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.{Schema => AvroSchema}
+import org.apache.kafka.connect.data.{Schema, Struct}
 import org.apache.kafka.connect.source.SourceRecord
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException
 
@@ -32,7 +33,12 @@ class AvroConverter extends Converter {
   private var sourceToSchemaMap: Map[String, AvroSchema] = Map.empty
   private var avroReadersMap: Map[String, GenericDatumReader[GenericRecord]] = Map.empty
 
-  override def convert(kafkaTopic: String, sourceTopic: String, messageId: String, bytes: Array[Byte]): SourceRecord = {
+  override def convert(kafkaTopic: String,
+                       sourceTopic: String,
+                       messageId: String,
+                       bytes: Array[Byte],
+                       keys: Seq[String] = Seq.empty,
+                       keyDelimiter: String = "."): SourceRecord = {
     Option(bytes) match {
       case None =>
         new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
@@ -45,14 +51,31 @@ class AvroConverter extends Converter {
         val decoder = DecoderFactory.get().binaryDecoder(bytes, null)
         val record = reader.read(null, decoder)
         val schemaAndValue = avroData.toConnectData(sourceToSchemaMap(sourceTopic.toLowerCase), record)
-        new SourceRecord(
-          Collections.singletonMap(Converter.TopicKey, sourceTopic),
-          null,
-          kafkaTopic,
-          MsgKey.schema,
-          MsgKey.getStruct(sourceTopic, messageId),
-          schemaAndValue.schema(),
-          schemaAndValue.value())
+        val value = schemaAndValue.value()
+        value match {
+          case s: Struct if keys.nonEmpty=>
+            val keysValue = keys.map { key =>
+              Option(KeyExtractor.extract(s, key.split('.').toVector)).map(_.toString)
+            }.mkString(keyDelimiter)
+            new SourceRecord(
+              Collections.singletonMap(Converter.TopicKey, sourceTopic),
+              null,
+              kafkaTopic,
+              Schema.STRING_SCHEMA,
+              keysValue,
+              schemaAndValue.schema(),
+              schemaAndValue.value())
+          case _ =>
+            new SourceRecord(
+              Collections.singletonMap(Converter.TopicKey, sourceTopic),
+              null,
+              kafkaTopic,
+              MsgKey.schema,
+              MsgKey.getStruct(sourceTopic, messageId),
+              schemaAndValue.schema(),
+              schemaAndValue.value())
+        }
+
     }
   }
 
