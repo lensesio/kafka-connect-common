@@ -46,7 +46,7 @@ class JsonSimpleConverter extends Converter {
           null,
           kafkaTopic,
           Schema.STRING_SCHEMA,
-          s"$sourceTopic:$messageId",
+          keysValue,
           schemaAndValue.schema(),
           schemaAndValue.value())
       case _=>
