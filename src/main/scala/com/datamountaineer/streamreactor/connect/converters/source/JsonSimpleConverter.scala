@@ -38,7 +38,7 @@ class JsonSimpleConverter extends Converter {
     val value = schemaAndValue.value()
     value match {
       case s:Struct if keys.nonEmpty =>
-        val keysValue = keys.map { key =>
+        val keysValue = keys.flatMap { key =>
           Option(KeyExtractor.extract(s, key.split('.').toVector)).map(_.toString)
         }.mkString(keyDelimiter)
 
