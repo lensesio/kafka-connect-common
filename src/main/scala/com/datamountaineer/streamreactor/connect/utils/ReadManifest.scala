@@ -19,8 +19,6 @@ package com.datamountaineer.streamreactor.connect.utils
 import java.io.File
 import java.util.jar.JarFile
 
-import com.jcabi.manifests.Manifests
-
 import scala.collection.mutable
 
 /**
