@@ -19,14 +19,13 @@ package com.datamountaineer.streamreactor.connect.utils
 import java.io.File
 import java.util.jar.JarFile
 
-import com.datamountaineer.streamreactor.connect.utils.JarManifest.getClass
-
 import scala.collection.mutable
 
 /**
   * Created by andrew@datamountaineer.com on 01/11/2017.
   * lenses-sql-runners
   */
+object JarManifest {
 
 case class JarManifest() {
 
