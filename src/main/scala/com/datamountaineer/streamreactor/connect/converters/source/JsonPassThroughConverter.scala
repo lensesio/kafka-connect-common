@@ -45,17 +45,17 @@ class JsonPassThroughConverter extends Converter {
       new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
         null,
         kafkaTopic,
-        Schema.STRING_SCHEMA,
+        null,
         keysValue,
-        Schema.BYTES_SCHEMA,
-        bytes)
+        null,
+        json)
     } else {
       new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
         null,
         kafkaTopic,
-        Schema.STRING_SCHEMA,
+        null,
         s"$sourceTopic$keyDelimiter$messageId",
-        Schema.BYTES_SCHEMA,
+        null,
         bytes)
     }
   }
