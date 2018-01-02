@@ -38,24 +38,24 @@ class JsonPassThroughConverter extends Converter {
       val json = new String(bytes, "utf-8")
 
       val jsonNode = JacksonJson.asJson(json)
-      val keysValue = keys.map { key =>
+      val keysValue = keys.flatMap { key =>
         Option(KeyExtractor.extract(jsonNode, key.split('.').toVector)).map(_.toString)
       }.mkString(keyDelimiter)
 
       new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
         null,
         kafkaTopic,
-        Schema.BYTES_SCHEMA,
-        keysValue.getBytes("utf-8"),
-        Schema.BYTES_SCHEMA,
-        bytes)
+        null,
+        keysValue,
+        null,
+        json)
     } else {
       new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
         null,
         kafkaTopic,
-        Schema.BYTES_SCHEMA,
-        s"$sourceTopic$keyDelimiter$messageId".getBytes("utf-8"),
-        Schema.BYTES_SCHEMA,
+        null,
+        s"$sourceTopic$keyDelimiter$messageId",
+        null,
         bytes)
     }
   }
