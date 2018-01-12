@@ -16,21 +16,49 @@
 
 package com.datamountaineer.streamreactor.connect.utils
 
-import com.jcabi.manifests.Manifests
+import java.io.File
+import java.util.jar.JarFile
+
+import scala.collection.mutable
 
 /**
-  * Created by andrew@datamountaineer.com on 31/10/2017. 
-  * kafka-connect-common
+  * Created by andrew@datamountaineer.com on 01/11/2017.
+  * lenses-sql-runners
   */
-object ReadManifest {
-  def mainfest(): String =
+object JarManifest {
+  val map = mutable.Map.empty[String, String]
+
+  def version(): String = map("StreamReactor-Version")
+
+  def apply(): String = {
+
+    var msg = "unknown"
+    try {
+      val file = new File(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
+      if (file.isFile) {
+        val jarFile = new JarFile(file)
+        val manifest = jarFile.getManifest
+        val attributes = manifest.getMainAttributes
+        map += "StreamReactor-Version" -> attributes.getValue("StreamReactor-Version")
+        map += "Kafka-Version" -> attributes.getValue("Kafka-Version")
+        map += "Git-Repo" -> attributes.getValue("Git-Repo")
+        map += "Git-Commit-Hash" -> attributes.getValue("Git-Commit-Hash")
+        map += "Git-Tag" -> attributes.getValue("Git-Tag")
+        map += "StreamReactor-Docs" -> attributes.getValue("StreamReactor-Docs")
+      }
+    }
+    catch {
+      case t: Throwable => msg = t.getMessage
+    }
+
     s"""
-       |StreamReactor-Version:  ${Manifests.read("StreamReactor-Version")}
-       |Kafka-Version:          ${Manifests.read("Kafka-Version")}
-       |KCQL-Version:           ${Manifests.read("KCQL-Version")}
-       |Git-Repo:               ${Manifests.read("Git-Repo")}
-       |Git-Commit-Hash:        ${Manifests.read("Git-Commit-Hash")}
-       |Git-Tag:                ${Manifests.read("Git-Tag")}
-       |StreamReactor-Docs:     ${Manifests.read("StreamReactor-Docs")}
-    """.stripMargin
+       |Lenses-SQL-Runner-Version:   ${map.getOrElse("Lenses-SQL-Runner-Version", msg)}
+       |Kafka-Version:               ${map.getOrElse("Kafka-Version", msg)}
+       |Git-Repo:                    ${map.getOrElse("Git-Repo", msg)}
+       |Git-Commit-Hash:             ${map.getOrElse("Git-Commit-Hash", msg)}
+       |Git-Tag:                     ${map.getOrElse("Git-Tag", msg)}
+       |StreamReactor-Docs:          ${map.getOrElse("StreamReactor-Docs", msg)}
+      """.
+      stripMargin
+  }
 }
