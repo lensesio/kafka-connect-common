@@ -60,7 +60,7 @@ allprojects {
         guavaVersion = "18.0"
         json4sVersion = "3.4.1"
         kcqlVersion =  "2.4.0"
-        smt = "0.2"
+        smt = "1.0.0"
     }
 
     repositories {
