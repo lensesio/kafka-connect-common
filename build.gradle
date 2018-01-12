@@ -49,9 +49,9 @@ allprojects {
         scalaCheck = '1.11.1'
         scalaTest = '2.2.6'
         junit = '4.11'
-        confluentVersion = '3.3.1'
+        confluentVersion = '4.0.0'
         scalaLoggingVersion = '2.1.2'
-        kafkaVersion = '0.11.0.1'
+        kafkaVersion = '1.0.0'
         mockitoVersion = '1.10.19'
         avroVersion = '1.8.2'
         avro4sVersion = "1.6.4"
@@ -60,7 +60,7 @@ allprojects {
         guavaVersion = "18.0"
         json4sVersion = "3.4.1"
         kcqlVersion =  "2.4.0"
-        smt = "0.1"
+        smt = "0.2"
     }
 
     repositories {
