@@ -19,40 +19,45 @@ package com.datamountaineer.streamreactor.connect.utils
 import java.io.File
 import java.util.jar.JarFile
 
+import com.datamountaineer.streamreactor.connect.utils.JarManifest.getClass
+
 import scala.collection.mutable
 
 /**
   * Created by andrew@datamountaineer.com on 01/11/2017.
   * lenses-sql-runners
   */
-object JarManifest {
+
+case class JarManifest() {
+
   val map = mutable.Map.empty[String, String]
 
-  def version(): String = map("StreamReactor-Version")
+  var msg = "unknown"
+  try {
+    val file = new File(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
+    if (file.isFile) {
+      val jarFile = new JarFile(file)
+      val manifest = jarFile.getManifest
+      val attributes = manifest.getMainAttributes
+      map += "StreamReactor-Version" -> attributes.getValue("StreamReactor-Version")
+      map += "Kafka-Version" -> attributes.getValue("Kafka-Version")
+      map += "Git-Repo" -> attributes.getValue("Git-Repo")
+      map += "Git-Commit-Hash" -> attributes.getValue("Git-Commit-Hash")
+      map += "Git-Tag" -> attributes.getValue("Git-Tag")
+      map += "StreamReactor-Docs" -> attributes.getValue("StreamReactor-Docs")
+    }
+  }
+  catch {
+    case t: Throwable => msg = t.getMessage
+  }
 
-  def apply(): String = {
 
+  def version(): String = map.getOrElse("StreamReactor-Version", "")
+
+  def printManifest(): String = {
     var msg = "unknown"
-    try {
-      val file = new File(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
-      if (file.isFile) {
-        val jarFile = new JarFile(file)
-        val manifest = jarFile.getManifest
-        val attributes = manifest.getMainAttributes
-        map += "StreamReactor-Version" -> attributes.getValue("StreamReactor-Version")
-        map += "Kafka-Version" -> attributes.getValue("Kafka-Version")
-        map += "Git-Repo" -> attributes.getValue("Git-Repo")
-        map += "Git-Commit-Hash" -> attributes.getValue("Git-Commit-Hash")
-        map += "Git-Tag" -> attributes.getValue("Git-Tag")
-        map += "StreamReactor-Docs" -> attributes.getValue("StreamReactor-Docs")
-      }
-    }
-    catch {
-      case t: Throwable => msg = t.getMessage
-    }
-
     s"""
-       |Lenses-SQL-Runner-Version:   ${map.getOrElse("Lenses-SQL-Runner-Version", msg)}
+       |StreamReactor-Version:       ${map.getOrElse("StreamReactor-Version", msg)}
        |Kafka-Version:               ${map.getOrElse("Kafka-Version", msg)}
        |Git-Repo:                    ${map.getOrElse("Git-Repo", msg)}
        |Git-Commit-Hash:             ${map.getOrElse("Git-Commit-Hash", msg)}
