@@ -48,7 +48,8 @@ case class JarManifest() {
   def version(): String = map.getOrElse("StreamReactor-Version", "")
 
   def printManifest(): String = {
-    var msg = "unknown"
+    val msg = "unknown"
+
     s"""
        |StreamReactor-Version:       ${map.getOrElse("StreamReactor-Version", msg)}
        |Kafka-Version:               ${map.getOrElse("Kafka-Version", msg)}
