@@ -59,12 +59,12 @@ allprojects {
         slf4jVersion = "1.7.7"
         guavaVersion = "18.0"
         json4sVersion = "3.4.1"
-        kcqlVersion =  "2.4.0"
+        kcqlVersion =  "2.5.1"
         smt = "1.0.0"
     }
 
     repositories {
-        mavenLocal()
+       // mavenLocal()
         mavenCentral()
         maven { url "http://packages.confluent.io/maven/" }
         maven { url "http://repo.typesafe.com/typesafe/releases/" }
