@@ -17,17 +17,18 @@
 package com.datamountaineer.streamreactor.connect.utils
 
 import java.io.File
+import java.net.URL
 import java.util.jar.JarFile
 
 import scala.collection.mutable
 
-case class JarManifest() {
+case class JarManifest(location: URL) {
 
   val map = mutable.Map.empty[String, String]
 
   var msg = "unknown"
   try {
-    val file = new File(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
+    val file = new File(location.toURI)
     if (file.isFile) {
       val jarFile = new JarFile(file)
       val manifest = jarFile.getManifest
