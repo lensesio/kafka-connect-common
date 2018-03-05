@@ -8,7 +8,7 @@ Kafka Connect Common is in Maven, include it in your connector.
 
 | Version | Confluent Version |Kafka| Kcql Version |
 | ------- | ----------------- |-----|--------------|
-|1.0.6|4.0.0|1.0.0|2.5.1
+|1.0.7|4.0.0|1.0.0|2.5.1
 |1.0.6|4.0.0|1.0.0|2.5.1
 |1.0.5|4.0.0|1.0.0|2.5.1
 |1.0.4|4.0.0|1.0.0|2.5.1
