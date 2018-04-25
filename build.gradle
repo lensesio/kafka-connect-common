@@ -23,23 +23,20 @@ buildscript {
     }
     dependencies {
         classpath 'com.github.maiflai:gradle-scalatest:0.16'
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.9.0'
-        classpath 'net.researchgate:gradle-release:2.6.0'
     }
 }
 
+apply plugin: 'java'
+apply plugin: 'scala'
+apply plugin: 'com.github.maiflai.scalatest'
 apply plugin: 'signing'
-apply plugin: 'io.codearte.nexus-staging'
-apply plugin: 'net.researchgate.release'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 allprojects {
     group = 'com.datamountaineer'
     version = version
     description = "kafka-connect-common"
-    apply plugin: 'java'
-    apply plugin: 'scala'
-    apply plugin: 'maven'
-    apply plugin: 'com.github.maiflai.scalatest'
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
@@ -51,7 +48,7 @@ allprojects {
         junit = '4.11'
         confluentVersion = '4.1.0'
         scalaLoggingVersion = '2.1.2'
-        kafkaVersion = '1.0.1'
+        kafkaVersion = '1.1.0'
         mockitoVersion = '1.10.19'
         avroVersion = '1.8.2'
         avro4sVersion = "1.6.4"
@@ -220,12 +217,6 @@ allprojects {
                     }
                 }
             }
-        }
-
-        nexusStaging {
-            packageGroup = project.getGroup()
-            username = ossrhUsername
-            password = ossrhPassword
         }
     }
 }
