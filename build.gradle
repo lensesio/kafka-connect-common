@@ -168,6 +168,7 @@ allprojects {
     javadoc.dependsOn scaladoc
 
     signing {
+        required { gradle.taskGraph.hasTask("uploadArchives") }
         sign configurations.archives
     }
 
