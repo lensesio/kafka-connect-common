@@ -16,7 +16,6 @@
 
 package com.datamountaineer.streamreactor.connect.config.base.traits
 
-import java.util
 
 import com.datamountaineer.kcql.{Field, FormatType, Kcql, WriteModeEnum}
 import com.datamountaineer.streamreactor.connect.rowkeys.{StringGenericRowKeyBuilder, StringKeyBuilder, StringStructFieldsStringKeyBuilder}
@@ -46,65 +45,65 @@ trait KcqlSettings extends BaseSettings {
   }
 
   def getFieldsMap(kcql: Set[Kcql] = getKCQL): Map[String, Map[String, String]] = {
-    kcql.map(rm =>
+    kcql.toList.map(rm =>
       (rm.getSource, rm.getFields.map(fa => (fa.getName, fa.getAlias)).toMap)
     ).toMap
   }
 
   def getFields(kcql: Set[Kcql] = getKCQL): Map[String, Seq[Field]] = {
-    kcql.map(rm => (rm.getSource, rm.getFields.asScala)).toMap
+    kcql.toList.map(rm => (rm.getSource, rm.getFields.asScala)).toMap
   }
 
   def getIgnoreFields(kcql: Set[Kcql] = getKCQL): Map[String, Seq[Field]] = {
-    kcql.map(rm => (rm.getSource, rm.getIgnoredFields.asScala)).toMap
+    kcql.toList.map(rm => (rm.getSource, rm.getIgnoredFields.asScala)).toMap
   }
 
-  def getFieldsAliases(kcql: Set[Kcql] = getKCQL): Set[Map[String, String]] = {
-    kcql.map(rm => rm.getFields.map(fa => (fa.getName, fa.getAlias)).toMap)
+  def getFieldsAliases(kcql: Set[Kcql] = getKCQL): List[Map[String, String]] = {
+    kcql.toList.map(rm => rm.getFields.asScala.map(fa => (fa.getName, fa.getAlias)).toMap)
   }
 
   def getIgnoreFieldsMap(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
-    kcql.map(r => (r.getSource,  r.getIgnoredFields.map(f => f.getName).toSet)).toMap
+    kcql.toList.map(r => (r.getSource,  r.getIgnoredFields.map(f => f.getName).toSet)).toMap
   }
 
   def getPrimaryKeys(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
-    kcql.map(r => (r.getSource, r.getPrimaryKeys.map(f => f.getName).toSet)).toMap
+    kcql.toList.map(r => (r.getSource, r.getPrimaryKeys.map(f => f.getName).toSet)).toMap
   }
 
   def getTableTopic(kcql: Set[Kcql] = getKCQL): Map[String, String] = {
-    kcql.map(r => (r.getSource, r.getTarget)).toMap
+    kcql.toList.map(r => (r.getSource, r.getTarget)).toMap
   }
 
   def getFormat(formatType: FormatType => FormatType, kcql: Set[Kcql] = getKCQL): Map[String, FormatType] = {
-    kcql.map(r => (r.getSource, formatType(r.getFormatType))).toMap
+    kcql.toList.map(r => (r.getSource, formatType(r.getFormatType))).toMap
   }
 
   def getTTL(kcql: Set[Kcql] = getKCQL): Map[String, Long] = {
-    kcql.map(r => (r.getSource, r.getTTL)).toMap
+    kcql.toList.map(r => (r.getSource, r.getTTL)).toMap
   }
 
-  def getIncrementalMode(kcql: Set[Kcql] = getKCQL): Map[String, String] = {
-    kcql.map(r => (r.getSource, r.getIncrementalMode)).toMap
-  }
+//  def getIncrementalMode(kcql: Set[Kcql] = getKCQL): Map[String, String] = {
+//    kcql.toList.map(r => (r.getSource, r.getIncrementalMode)).toMap
+//  }
 
   def getBatchSize(kcql: Set[Kcql] = getKCQL, defaultBatchSize: Int): Map[String, Int] = {
-    kcql.map(r => (r.getSource, Option(r.getBatchSize).getOrElse(defaultBatchSize))).toMap
+    kcql.toList.map(r => (r.getSource, Option(r.getBatchSize).getOrElse(defaultBatchSize))).toMap
   }
 
   def getBucketSize(kcql: Set[Kcql] = getKCQL): Map[String, Int] = {
-    kcql.map(r => (r.getSource, r.getBucketing.getBucketsNumber)).toMap
+    kcql.toList.map(r => (r.getSource, r.getBucketing.getBucketsNumber)).toMap
   }
 
   def getWriteMode(kcql: Set[Kcql] = getKCQL) : Map[String, WriteModeEnum] = {
-    kcql.map(r => (r.getSource, r.getWriteMode)).toMap
+    kcql.toList.map(r => (r.getSource, r.getWriteMode)).toMap
   }
 
   def getAutoCreate(kcql: Set[Kcql] = getKCQL) : Map[String, Boolean] = {
-    kcql.map(r => (r.getSource, r.isAutoCreate)).toMap
+    kcql.toList.map(r => (r.getSource, r.isAutoCreate)).toMap
   }
 
   def getAutoEvolve(kcql: Set[Kcql] = getKCQL) : Map[String, Boolean] = {
-    kcql.map(r => (r.getSource, r.isAutoEvolve)).toMap
+    kcql.toList.map(r => (r.getSource, r.isAutoEvolve)).toMap
   }
 
   def getUpsertKeys(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
@@ -127,8 +126,8 @@ trait KcqlSettings extends BaseSettings {
       }.toMap
   }
 
-  def getRowKeyBuilders(kcql: Set[Kcql] = getKCQL): Set[StringKeyBuilder] = {
-    kcql.map { k =>
+  def getRowKeyBuilders(kcql: Set[Kcql] = getKCQL): List[StringKeyBuilder] = {
+    kcql.toList.map { k =>
       val keys = k.getPrimaryKeys.asScala.map(k => k.getName)
       // No PK => 'topic|par|offset' builder else generic-builder
       if (keys.nonEmpty) StringStructFieldsStringKeyBuilder(keys) else new StringGenericRowKeyBuilder()
@@ -136,11 +135,11 @@ trait KcqlSettings extends BaseSettings {
   }
 
   def getPrimaryKeyCols(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
-    kcql.map(k => (k.getSource, k.getPrimaryKeys.map(p => p.getName).toSet)).toMap
+    kcql.toList.map(k => (k.getSource, k.getPrimaryKeys.map(p => p.getName).toSet)).toMap
   }
 
-  def getIncrementalMode(routes: Seq[Kcql]): Map[String, String] = {
-    routes.map(r => (r.getSource, r.getIncrementalMode)).toMap
+  def getIncrementalMode(routes: Set[Kcql]): Map[String, String] = {
+    routes.toList.map(r => (r.getSource, r.getIncrementalMode)).toMap
   }
 
   def checkInputTopics(props: Map[String, String]) = {

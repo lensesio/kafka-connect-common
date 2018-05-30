@@ -227,3 +227,6 @@ allprojects {
     }
 }
 
+project.tasks.compileScala.scalaCompileOptions.additionalParameters = ["-target:jvm-1.8"]
+project.tasks.compileTestScala.scalaCompileOptions.additionalParameters = ["-target:jvm-1.8"]
+
