@@ -24,6 +24,7 @@ import org.apache.kafka.common.config.ConfigException
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.collection.immutable.ListSet
 
 trait KcqlSettings extends BaseSettings {
   val kcqlConstant: String = s"$connectorPrefix.$KCQL_PROP_SUFFIX"
@@ -67,7 +68,11 @@ trait KcqlSettings extends BaseSettings {
   }
 
   def getPrimaryKeys(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
-    kcql.toList.map(r => (r.getSource, r.getPrimaryKeys.map(f => f.getName).toSet)).toMap
+    kcql.toList.map{r =>
+      val names: Seq[String] = r.getPrimaryKeys.map(f => f.getName)
+      val set: Set[String] = ListSet(names:_*)
+      (r.getSource, set)
+    }.toMap
   }
 
   def getTableTopic(kcql: Set[Kcql] = getKCQL): Map[String, String] = {
@@ -110,7 +115,7 @@ trait KcqlSettings extends BaseSettings {
     kcql
       .filter(c => c.getWriteMode == WriteModeEnum.UPSERT)
       .map { r =>
-        val keys = r.getPrimaryKeys.map(k => k.getName).toSet
+        val keys: Set[String] = ListSet(r.getPrimaryKeys.map(k => k.getName):_*)
         if (keys.isEmpty) throw new ConfigException(s"${r.getTarget} is set up with upsert, you need primary keys setup")
         (r.getSource, keys)
       }.toMap
@@ -120,7 +125,8 @@ trait KcqlSettings extends BaseSettings {
     kcql
       .filter(c => c.getWriteMode == WriteModeEnum.UPSERT)
       .map { r =>
-        val keys = r.getPrimaryKeys.toSet
+        val keyList: List[Field] = r.getPrimaryKeys().toList
+        val keys: Set[Field] = ListSet( keyList:_* )
         if (keys.isEmpty) throw new ConfigException(s"${r.getTarget} is set up with upsert, you need primary keys setup")
         (r.getSource, keys.head.getName)
       }.toMap
@@ -135,7 +141,9 @@ trait KcqlSettings extends BaseSettings {
   }
 
   def getPrimaryKeyCols(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
-    kcql.toList.map(k => (k.getSource, k.getPrimaryKeys.map(p => p.getName).toSet)).toMap
+    kcql.toList.map(k =>
+      (k.getSource, ListSet(k.getPrimaryKeys.map(p => p.getName):_*))
+    ).toMap
   }
 
   def getIncrementalMode(routes: Set[Kcql]): Map[String, String] = {
