@@ -111,11 +111,29 @@ trait KcqlSettings extends BaseSettings {
     kcql.toList.map(r => (r.getSource, r.isAutoEvolve)).toMap
   }
 
-  def getUpsertKeys(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
+  /** Get all the upsert keys
+    *
+    * @param kcql
+    * @param preserveFullKeys (default false) If true, keys that
+    *                         have parents will return the full
+    *                         key (ie. "A.B.C" rather than just
+    *                         "C")
+    * @return map of topic to set of keys
+    */
+  def getUpsertKeys(
+    kcql: Set[Kcql] = getKCQL,
+    preserveFullKeys: Boolean = false):
+    Map[String, Set[String]] = {
+
     kcql
       .filter(c => c.getWriteMode == WriteModeEnum.UPSERT)
       .map { r =>
-        val keys: Set[String] = ListSet(r.getPrimaryKeys.map(k => k.getName):_*)
+        val keys: Set[String] = ListSet(r.getPrimaryKeys.map(key =>
+          preserveFullKeys match {
+            case false => key.getName
+            case true => key.toString
+          }
+        ):_*)
         if (keys.isEmpty) throw new ConfigException(s"${r.getTarget} is set up with upsert, you need primary keys setup")
         (r.getSource, keys)
       }.toMap
