@@ -70,7 +70,7 @@ trait KcqlSettings extends BaseSettings {
   def getPrimaryKeys(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
     kcql.toList.map{r =>
       val names: Seq[String] = r.getPrimaryKeys.map(f => f.getName)
-      val set: Set[String] = ListSet(names:_*)
+      val set: Set[String] = ListSet(names.reverse:_*)
       (r.getSource, set)
     }.toMap
   }
@@ -133,7 +133,7 @@ trait KcqlSettings extends BaseSettings {
             case false => key.getName
             case true => key.toString
           }
-        ):_*)
+        ).reverse:_*)
         if (keys.isEmpty) throw new ConfigException(s"${r.getTarget} is set up with upsert, you need primary keys setup")
         (r.getSource, keys)
       }.toMap
@@ -144,7 +144,7 @@ trait KcqlSettings extends BaseSettings {
       .filter(c => c.getWriteMode == WriteModeEnum.UPSERT)
       .map { r =>
         val keyList: List[Field] = r.getPrimaryKeys().toList
-        val keys: Set[Field] = ListSet( keyList:_* )
+        val keys: Set[Field] = ListSet( keyList.reverse:_* )
         if (keys.isEmpty) throw new ConfigException(s"${r.getTarget} is set up with upsert, you need primary keys setup")
         (r.getSource, keys.head.getName)
       }.toMap
@@ -160,7 +160,7 @@ trait KcqlSettings extends BaseSettings {
 
   def getPrimaryKeyCols(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
     kcql.toList.map(k =>
-      (k.getSource, ListSet(k.getPrimaryKeys.map(p => p.getName):_*))
+      (k.getSource, ListSet(k.getPrimaryKeys.map(p => p.getName).reverse:_*))
     ).toMap
   }
 

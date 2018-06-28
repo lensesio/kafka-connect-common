@@ -70,6 +70,18 @@ class KcqlSettingsTest extends WordSpec with Matchers {
       testUpsertKeys("UPSERT INTO coll SELECT * FROM t PK a, b.m, b.n.x", Set("a", "b.m", "b.n.x"), preserve=true)
       testUpsertKeys("UPSERT INTO coll SELECT * FROM t PK b.m.x", Set("b.m.x"), preserve=true)
     }
+
+    "return keys in the expected order - as listed in the PK clause" in {
+
+      val kcql = "UPSERT INTO coll SELECT * FROM t PK a,b,c,d"
+      val expectedKeys = List("a","b","c","d")
+      val keys = KS(kcql).getUpsertKeys(preserveFullKeys=true)("t")
+      // SCALA 2.12 WARNING: If this fails when you upgrade to 2.12, you need to 
+      // modify KcqlSettings to remove all the reverse() calls when constructing
+      // the ListSets.
+      keys.toList shouldBe expectedKeys
+    }
+
   }
 
 }
