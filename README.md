@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/Landoop/kafka-connect-common.svg?branch=master)](https://travis-ci.org/Landoop/kafka-connect-common)
-[<img src="https://img.shields.io/badge/latest%20release-v01.1.3-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
+[<img src="https://img.shields.io/badge/latest%20release-v01.1.5-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
 Kafka Connect Common is in Maven, include it in your connector.
 
 
@@ -8,6 +8,8 @@ Kafka Connect Common is in Maven, include it in your connector.
 
 | Version | Confluent Version |Kafka| Kcql Version |
 | ------- | ----------------- |-----|--------------|
+|1.1.5|4.1.0|1.1.0|2.8.2
+|1.1.4|4.1.0|1.1.0|2.8.2
 |1.1.3|4.1.0|1.1.0|2.8
 |1.1.2|4.1.0|1.1.0|2.7
 |1.1.1|4.1.0|1.1.0|2.5.1
@@ -24,71 +26,20 @@ Kafka Connect Common is in Maven, include it in your connector.
 |1.0.2|4.0.0|1.0.0|2.4
 |1.0.1|4.0.0|1.0.0|2.4
 |1.0.0|4.0.0|1.0.0|2.4
-|0.9.6.4|3.3.0|0.11.0.0|2.1
-|0.9.6.3|3.3.0|0.11.0.0|2.1
-|0.9.6.2|3.3.0|0.11.0.0|2.1
-|0.9.6.1|3.3.0|0.11.0.0|2.1
-|0.9.6|3.3.0|0.11.0.0|2.1
-|0.9.5|3.3.0|0.11.0.0|2.1
-|0.9.4|3.3.0|0.11.0.0|2.1
-|0.9.3|3.3.0|0.11.0.0|2.1
-|0.9.2|3.3.0|0.11.0.0|2.1
-|0.9.1|3.3.0|0.11.0.0|2.1
-|0.9.0|3.3.0|0.11.0.0|2.1
-|0.8.3.2|3.3.0|0.11.0.0|2.1
-|0.8.3.1|3.3.0|0.11.0.0|2.1
-|0.8.3.0|3.3.0|0.11.0.0|2.1
-|0.8.2.9|3.3.0|0.11.0.0|2.1
-|0.8.2.8|3.3.0|0.11.0.0|2.1
-|0.8.2.7|3.3.0|0.11.0.0|2.1
-|0.8.2.6|3.3.0|0.11.0.0|2.1
-|0.8.2.5|3.3.0|0.11.0.0|2.1
-|0.8.2.4|3.3.0|0.11.0.0|2.1
-|0.8.1.3|3.2.2|0.10.2.0|2.1
-|0.8.0|3.2.1|0.10.2.0|2.1
-|0.7.9|3.2.1|0.10.2.0|
-|0.7.8|3.2.0|0.10.2.0|
-|0.7.7|3.2.0|0.10.2.0|
-|0.7.6|3.2.0|0.10.2.0|
-|0.7.5|3.2.0|0.10.2.0|
-|0.7.4|3.2.0|0.10.2.0|
-|0.7.3|3.2.0|0.10.2.0|
-|0.7.2|3.2.0|0.10.2.0|
-|0.7.1|3.2.0|0.10.2.0|
-|0.7.0|3.1.1|0.10.1.1|
-|0.6.9|3.1.1|0.10.1.1|
-|0.6.8|3.1.1|0.10.1.1|
-|0.6.7|3.1.1|0.10.1.1|
-|0.6.6|3.0.1|0.10.0.1|
-|0.6.5|3.0.1|0.10.0.1|
-|0.6.4|3.0.1|0.10.0.1|
-|0.6.3|3.0.1|0.10.0.1|
-|0.6.2|3.0.1|0.10.0.1|
-|0.6.1|3.0.1|0.10.0.1|
-|0.5|3.0.1|0.10.0.1|
-|0.4.2|3.0.0|0.10.0.0|
-|0.4.1|3.0.0|0.10.0.0|
-|0.4|3.0.0|0.10.0.0|
-|0.3.8|3.0.0||
-|0.3.7|3.0.0||
-|0.3.5|2.0.1||
-|0.3.4|2.0.1||
-|0.3.3|2.0.1||
-
 
 ```bash
 #maven
 <dependency>
 	<groupId>com.datamountaineer</groupId>
 	<artifactId>kafka-connect-common</artifactId>
-	<version>1.1.3</version>
+	<version>1.1.5</version>
 </dependency>
 
 #sbt
-libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "1.1.3"
+libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "1.1.5"
 
 #gradle
-'com.datamountaineer:kafka-connect-common:1.1.3'
+'com.datamountaineer:kafka-connect-common:1.1.5'
 ```
 
 # kafka-connect-common
