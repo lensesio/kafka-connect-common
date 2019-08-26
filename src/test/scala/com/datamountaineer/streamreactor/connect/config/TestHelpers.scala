@@ -56,4 +56,16 @@ class TestHelpers extends TestUtilsBase  {
     val res = Helpers.checkInputTopics(kcqlConstant, props)
     res shouldBe true
   }
+
+  "should add topics involved in kcql error to message" in {
+    val props = Map("topics" -> "topic1",
+      s"$kcqlConstant" -> "insert into table select time,c1,c2 from topic1 WITH TIMESTAMP time"
+    )
+
+    val e = intercept[ConfigException] {
+      Helpers.checkInputTopics(kcqlConstant, props)
+    }
+
+    e.getMessage.contains("topic1WITHTIMESTAMPtime") shouldBe true
+  }
 }
