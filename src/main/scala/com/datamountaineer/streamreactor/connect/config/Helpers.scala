@@ -104,14 +104,14 @@ object Helpers extends StrictLogging {
 
     if (!res) {
       val missing = topics.diff(sources)
-      throw new ConfigException(s"Mandatory `topics` configuration contains topics not set in $kcqlConstant: ${missing}")
+      throw new ConfigException(s"Mandatory `topics` configuration contains topics not set in $kcqlConstant: ${missing}, kcql contains $sources")
     }
 
     val res1 = sources.subsetOf(topics)
 
     if (!res1) {
       val missing = topics.diff(sources)
-      throw new ConfigException(s"$kcqlConstant configuration contains topics not set in mandatory `topic` configuration: ${missing}")
+      throw new ConfigException(s"$kcqlConstant configuration contains topics not set in mandatory `topic` configuration: ${missing}, kcql contains $sources")
     }
 
     true
