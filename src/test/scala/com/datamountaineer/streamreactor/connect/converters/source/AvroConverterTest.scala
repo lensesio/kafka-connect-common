@@ -48,7 +48,7 @@ class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
     path.deleteRecursively()
   }
 
-  private def initializeConverter(converter: AvroConverter, schema: Schema) = {
+  private def initializeConverter(converter: AvroConverter, schema: Schema, converterTopic: String) = {
     def writeSchema(schema: Schema): File = {
       val schemaFile = Paths.get(folder.getName, UUID.randomUUID().toString)
       val bw = new BufferedWriter(new FileWriter(schemaFile.toFile))
@@ -59,7 +59,7 @@ class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
     }
 
     converter.initialize(Map(
-      AvroConverter.SCHEMA_CONFIG -> s"$sourceTopic=${writeSchema(schema)}"
+      AvroConverter.SCHEMA_CONFIG -> s"$converterTopic=${writeSchema(schema)}"
     ))
 
   }
@@ -80,7 +80,7 @@ class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
     "handle null payloads" in {
       val converter = new AvroConverter()
       val schema = SchemaBuilder.builder().stringType()
-      initializeConverter(converter, schema)
+      initializeConverter(converter, schema, sourceTopic)
 
       val sourceRecord = converter.convert(topic, sourceTopic, "100", null)
 
@@ -96,7 +96,7 @@ class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
         val avro = recordFormat.to(transaction)
 
         val converter = new AvroConverter
-        initializeConverter(converter, avro.getSchema)
+        initializeConverter(converter, avro.getSchema, sourceTopic)
 
         val sourceRecord = converter.convert(topic, sourceTopic, "1001", write(avro).map(b => (b + 1) % 255).map(_.toByte))
 
@@ -117,7 +117,7 @@ class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
       val avro = recordFormat.to(transaction)
 
       val converter = new AvroConverter
-      initializeConverter(converter, avro.getSchema)
+      initializeConverter(converter, avro.getSchema, sourceTopic)
 
       val sourceRecord = converter.convert(topic, sourceTopic, "1001", write(avro))
 
@@ -129,6 +129,27 @@ class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
 
       sourceRecord.value() shouldBe avroData.toConnectData(avro.getSchema, avro).value()
     }
+
+    "handle avro records when the source topic name contains \"+\"" in {
+      val sourceTopicWithPlus = "somesource+"
+      val recordFormat = RecordFormat[Transaction]
+      val transaction = Transaction("test", 2354.99, System.currentTimeMillis())
+      val avro = recordFormat.to(transaction)
+
+      val converter = new AvroConverter
+      initializeConverter(converter, avro.getSchema, sourceTopicWithPlus)
+
+      val sourceRecord = converter.convert(topic, sourceTopicWithPlus, "1001", write(avro))
+
+      sourceRecord.key() shouldBe MsgKey.getStruct(sourceTopicWithPlus, "1001")
+      sourceRecord.keySchema() shouldBe MsgKey.schema
+
+      val avroData = new AvroData(4)
+      sourceRecord.valueSchema() shouldBe avroData.toConnectSchema(avro.getSchema)
+
+      sourceRecord.value() shouldBe avroData.toConnectData(avro.getSchema, avro).value()
+    }
+
   }
 }
 
