@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/Landoop/kafka-connect-common.svg?branch=master)](https://travis-ci.org/Landoop/kafka-connect-common)
+[![Actions Status](https://github.com/Landoop/kafka-connect-common/workflows/CI/badge.svg)](https://github.com/Landoop/kafka-connect-common/actions)
 [<img 
-src="https://img.shields.io/badge/latest%20release-v01.1.8-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
+src="https://img.shields.io/badge/latest%20release-v01.1.9-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
 Kafka Connect Common is in Maven, include it in your connector.
 
 
@@ -9,6 +9,7 @@ Kafka Connect Common is in Maven, include it in your connector.
 
 | Version | Confluent Version |Kafka| Kcql Version |
 | ------- | ----------------- |-----|--------------|
+|1.1.9|5.0.0|1.1.0|2.8.4
 |1.1.8|5.0.0|1.1.0|2.8.4
 |1.1.5|5.0.0|1.1.0|2.8.2
 |1.1.5|4.1.0|1.1.0|2.8.2
@@ -35,14 +36,14 @@ Kafka Connect Common is in Maven, include it in your connector.
 <dependency>
 	<groupId>com.datamountaineer</groupId>
 	<artifactId>kafka-connect-common</artifactId>
-	<version>1.1.8</version>
+	<version>1.1.9</version>
 </dependency>
 
 #sbt
-libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "1.1.8"
+libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "1.1.9"
 
 #gradle
-'com.datamountaineer:kafka-connect-common:1.1.8'
+'com.datamountaineer:kafka-connect-common:1.1.9'
 ```
 
 # kafka-connect-common
