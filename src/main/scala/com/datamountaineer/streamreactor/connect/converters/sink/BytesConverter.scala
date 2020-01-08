@@ -22,15 +22,27 @@ import org.apache.kafka.connect.sink.SinkRecord
 class BytesConverter extends Converter {
   override def convert(sinkTopic: String,
                        data: SinkRecord): SinkRecord = {
-
-    new SinkRecord(
-      data.topic(),
-      data.kafkaPartition(),
-      MsgKey.schema,
-      MsgKey.getStruct(sinkTopic, data.key().toString()),
-      Schema.BYTES_SCHEMA,
-      data.value(),
-      0
-    )
+    Option(data) match {
+      case None =>
+        new SinkRecord(
+          sinkTopic,
+          0,
+          null,
+          null,
+          Schema.BYTES_SCHEMA,
+          null,
+          0
+        )
+      case Some(_) =>
+        new SinkRecord(
+          data.topic(),
+          data.kafkaPartition(),
+          MsgKey.schema,
+          MsgKey.getStruct(sinkTopic, data.key().toString()),
+          Schema.BYTES_SCHEMA,
+          data.value(),
+          0
+        )
+    }
   }
 }

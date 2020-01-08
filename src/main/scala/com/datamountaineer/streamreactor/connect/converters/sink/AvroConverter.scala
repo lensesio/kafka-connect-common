@@ -37,7 +37,7 @@ class AvroConverter extends Converter {
     Option(data) match {
       case None =>
         new SinkRecord(
-          data.topic(),
+          sinkTopic,
           0,
           null,
           null,
