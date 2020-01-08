@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/Landoop/kafka-connect-common/workflows/CI/badge.svg)](https://github.com/Landoop/kafka-connect-common/actions)
+![Actions Status](https://github.com/Landoop/kafka-connect-common/workflows/CI/badge.svg)](https://github.com/Landoop/kafka-connect-common/actions)
 [<img 
 src="https://img.shields.io/badge/latest%20release-v01.1.9-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
 Kafka Connect Common is in Maven, include it in your connector.
