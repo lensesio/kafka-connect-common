@@ -19,7 +19,7 @@ package com.datamountaineer.streamreactor.connect.rowkeys
 import org.apache.kafka.connect.data.{Schema, Struct}
 import org.apache.kafka.connect.sink.SinkRecord
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
   * Builds the new record key for the given connect SinkRecord.
@@ -88,7 +88,7 @@ case class StringStructFieldsStringKeyBuilder(keys: Seq[String],
     val struct = record.value().asInstanceOf[Struct]
     val schema = struct.schema
 
-    val availableFields = schema.fields().map(_.name).toSet
+    val availableFields = schema.fields().asScala.map(_.name).toSet
     val missingKeys = keys.filterNot(availableFields.contains)
     require(missingKeys.isEmpty, s"${missingKeys.mkString(",")} keys are not present in the SinkRecord payload:${availableFields.mkString(",")}")
 

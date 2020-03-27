@@ -18,13 +18,13 @@ package com.datamountaineer.streamreactor.connect.converters
 
 import com.datamountaineer.kcql.Field
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object FieldConverter {
   def apply(field: Field): com.landoop.sql.Field = {
     com.landoop.sql.Field(
       field.getName,
       field.getAlias,
-      Option(field.getParentFields).map(_.toVector).orNull)
+      Option(field.getParentFields).map(_.asScala.toVector).orNull)
   }
 }

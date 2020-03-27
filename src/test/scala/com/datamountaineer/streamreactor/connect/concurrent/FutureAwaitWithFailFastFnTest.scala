@@ -19,16 +19,17 @@ package com.datamountaineer.streamreactor.connect.concurrent
 import java.util.concurrent.Executors
 
 import com.datamountaineer.streamreactor.connect.concurrent.ExecutorExtension._
-import org.scalatest.concurrent.{Eventually, Timeouts}
+import org.scalatest.concurrent.{Eventually, TimeLimits}
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Span}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
 
 import scala.util.{Failure, Try}
 
 /**
   * Created by stepi on 22/06/16.
   */
-class FutureAwaitWithFailFastFnTest extends WordSpec with Matchers with Eventually with Timeouts {
+class FutureAwaitWithFailFastFnTest extends AnyWordSpec with Matchers with Eventually with TimeLimits {
   "FutureAwaitWithFailFastFn" should {
     "return when all the futures have completed" in {
       val exec = Executors.newFixedThreadPool(10)
@@ -67,3 +68,5 @@ class FutureAwaitWithFailFastFnTest extends WordSpec with Matchers with Eventual
   }
 
 }
+
+

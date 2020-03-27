@@ -17,14 +17,15 @@
 package com.datamountaineer.streamreactor.connect.config
 
 import javax.net.ssl.{KeyManager, SSLContext, TrustManager}
-
-import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.BeforeAndAfter
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Created by andrew@datamountaineer.com on 19/04/16. 
   * stream-reactor
   */
-class TestSSLConfigContext extends WordSpec with Matchers with BeforeAndAfter {
+class TestSSLConfigContext extends AnyWordSpec with Matchers with BeforeAndAfter {
   var sslConfig : SSLConfig = null
   var sslConfigNoClient : SSLConfig = null
 

@@ -16,7 +16,7 @@
 
 package com.datamountaineer.streamreactor.connect.schemas
 
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import io.confluent.kafka.schemaregistry.client.rest.RestService
 
 import scala.util.{Failure, Success, Try}

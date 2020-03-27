@@ -29,11 +29,13 @@ import org.apache.avro.io.EncoderFactory
 import org.apache.avro.specific.SpecificDatumWriter
 import org.apache.avro.{AvroRuntimeException, Schema, SchemaBuilder}
 import org.apache.kafka.common.utils.ByteBufferOutputStream
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 import scala.reflect.io.Path
 
-class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
+class AvroConverterTest extends AnyWordSpec with Matchers with BeforeAndAfterAll {
   private val topic = "topicA"
   private val sourceTopic = "somesource"
   private val folder = new File(UUID.randomUUID().toString)

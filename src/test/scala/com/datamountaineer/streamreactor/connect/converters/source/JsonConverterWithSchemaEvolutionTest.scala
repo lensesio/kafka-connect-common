@@ -23,9 +23,10 @@ import com.sksamuel.avro4s.{RecordFormat, SchemaFor}
 import io.confluent.connect.avro.AvroData
 import org.apache.avro.Schema
 import org.apache.kafka.connect.data.Struct
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class JsonConverterWithSchemaEvolutionTest extends WordSpec with Matchers {
+class JsonConverterWithSchemaEvolutionTest extends AnyWordSpec with Matchers {
   val topic = "the_real_topic"
   val sourceTopic = "source_topic"
   val avroData = new AvroData(4)

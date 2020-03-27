@@ -17,7 +17,7 @@
 package com.datamountaineer.streamreactor.connect.config
 
 import com.datamountaineer.kcql.Kcql
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.kafka.common.config.ConfigException
 
 /**

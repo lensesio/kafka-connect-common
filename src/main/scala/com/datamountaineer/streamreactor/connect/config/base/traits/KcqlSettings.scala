@@ -21,8 +21,6 @@ import com.datamountaineer.kcql.{Field, FormatType, Kcql, WriteModeEnum}
 import com.datamountaineer.streamreactor.connect.rowkeys.{StringGenericRowKeyBuilder, StringKeyBuilder, StringStructFieldsStringKeyBuilder}
 import com.datamountaineer.streamreactor.connect.config.base.const.TraitConfigConst.KCQL_PROP_SUFFIX
 import org.apache.kafka.common.config.ConfigException
-
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.immutable.ListSet
 
@@ -47,7 +45,7 @@ trait KcqlSettings extends BaseSettings {
 
   def getFieldsMap(kcql: Set[Kcql] = getKCQL): Map[String, Map[String, String]] = {
     kcql.toList.map(rm =>
-      (rm.getSource, rm.getFields.map(fa => (fa.getName, fa.getAlias)).toMap)
+      (rm.getSource, rm.getFields.asScala.map(fa => (fa.getName, fa.getAlias)).toMap)
     ).toMap
   }
 
@@ -64,12 +62,12 @@ trait KcqlSettings extends BaseSettings {
   }
 
   def getIgnoreFieldsMap(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
-    kcql.toList.map(r => (r.getSource,  r.getIgnoredFields.map(f => f.getName).toSet)).toMap
+    kcql.toList.map(r => (r.getSource,  r.getIgnoredFields.asScala.map(f => f.getName).toSet)).toMap
   }
 
   def getPrimaryKeys(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
     kcql.toList.map{r =>
-      val names: Seq[String] = r.getPrimaryKeys.map(f => f.getName)
+      val names: Seq[String] = r.getPrimaryKeys.asScala.map(f => f.getName)
       val set: Set[String] = ListSet(names.reverse:_*)
       (r.getSource, set)
     }.toMap
@@ -128,7 +126,7 @@ trait KcqlSettings extends BaseSettings {
     kcql
       .filter(c => c.getWriteMode == WriteModeEnum.UPSERT)
       .map { r =>
-        val keys: Set[String] = ListSet(r.getPrimaryKeys.map(key =>
+        val keys: Set[String] = ListSet(r.getPrimaryKeys.asScala.map(key =>
           preserveFullKeys match {
             case false => key.getName
             case true => key.toString
@@ -143,7 +141,7 @@ trait KcqlSettings extends BaseSettings {
     kcql
       .filter(c => c.getWriteMode == WriteModeEnum.UPSERT)
       .map { r =>
-        val keyList: List[Field] = r.getPrimaryKeys().toList
+        val keyList: List[Field] = r.getPrimaryKeys().asScala.toList
         val keys: Set[Field] = ListSet( keyList.reverse:_* )
         if (keys.isEmpty) throw new ConfigException(s"${r.getTarget} is set up with upsert, you need primary keys setup")
         (r.getSource, keys.head.getName)
@@ -160,7 +158,7 @@ trait KcqlSettings extends BaseSettings {
 
   def getPrimaryKeyCols(kcql: Set[Kcql] = getKCQL): Map[String, Set[String]] = {
     kcql.toList.map(k =>
-      (k.getSource, ListSet(k.getPrimaryKeys.map(p => p.getName).reverse:_*))
+      (k.getSource, ListSet(k.getPrimaryKeys.asScala.map(p => p.getName).reverse:_*).toSet)
     ).toMap
   }
 

@@ -18,7 +18,7 @@ package com.datamountaineer.streamreactor.connect.concurrent
 
 import java.util.concurrent.{ExecutorService, TimeUnit}
 
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._

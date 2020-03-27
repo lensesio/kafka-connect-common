@@ -20,7 +20,7 @@ import java.util
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 
 import com.google.common.collect.Queues
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.kafka.connect.source.SourceRecord
 
 /**

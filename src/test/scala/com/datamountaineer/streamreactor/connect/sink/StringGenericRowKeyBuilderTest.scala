@@ -19,10 +19,11 @@ package com.datamountaineer.streamreactor.connect.sink
 import com.datamountaineer.streamreactor.connect.rowkeys.StringGenericRowKeyBuilder
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.sink.SinkRecord
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 
-class StringGenericRowKeyBuilderTest extends WordSpec with Matchers {
+class StringGenericRowKeyBuilderTest extends AnyWordSpec with Matchers {
   "StringGenericRowKeyBuilder" should {
     "use the topic, partition and offset to make the key" in {
 
