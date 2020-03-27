@@ -35,7 +35,7 @@ object FutureAwaitWithFailFastFn extends StrictLogging {
 
     //stop on the first failure
     futures.foreach { f =>
-      f.onFailure { case t =>
+      f.failed.foreach { case t =>
         if (promise.tryFailure(t)) {
           executorService.shutdownNow()
         }
@@ -71,7 +71,7 @@ object FutureAwaitWithFailFastFn extends StrictLogging {
 
     //stop on the first failure
     futures.foreach { f =>
-      f.onFailure { case t =>
+      f.failed.foreach { case t =>
         if (promise.tryFailure(t)) {
           executorService.shutdownNow()
         }
