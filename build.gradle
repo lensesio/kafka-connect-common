@@ -156,6 +156,7 @@ allprojects {
     }
 
     signing {
+        required { gradle.taskGraph.hasTask("publish") }
         sign configurations.archives
     }
 
