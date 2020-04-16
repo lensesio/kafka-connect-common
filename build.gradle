@@ -226,6 +226,7 @@ allprojects {
 def customizePom(pom) {
     pom.withXml {
         def root = asNode()
+        root.appendNode('description', 'Common components used across the datamountaineer kafka connect connectors.')
 
         // eliminate test-scoped dependencies (no need in maven central POMs)
         root.dependencies.removeAll { dep ->
@@ -235,7 +236,6 @@ def customizePom(pom) {
         // add all items necessary for maven central publication
         root.children().last() + {
             name project.name
-            description project.description
             url 'https://github.com/lensesio/kafka-connect-common'
 
             organization {
