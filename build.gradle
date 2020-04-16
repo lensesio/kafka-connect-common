@@ -31,256 +31,182 @@ apply plugin: 'java'
 apply plugin: 'scala'
 apply plugin: 'com.github.maiflai.scalatest'
 apply plugin: 'signing'
+apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 apply plugin: 'io.codearte.nexus-staging'
 
-allprojects {
-    group = 'com.datamountaineer'
-    version = version
-    description = "kafka-connect-common"
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
 
-    ext {
-        scalaMajorVersion = '2.12'
-        scala = '2.12.10'
-        scalaCheck = '1.14.3'
-        scalaTest = '3.1.1'
-        junit = '4.12'
-        confluentVersion = '5.4.0'
-        scalaLoggingVersion = '3.9.2'
-        kafkaVersion = '2.4.0'
-        mockitoVersion = '1.13.0'
-        avroVersion = '1.8.2'
-        avro4sVersion = "1.6.4"
-        guavaVersion = "18.0"
-        json4sVersion = "3.6.7"
-        kcqlVersion =  "2.8.4"
-        smt = "2.0.0"
+group = 'com.datamountaineer'
+version = version
+description = "kafka-connect-common"
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    scalaMajorVersion = '2.12'
+    scala = '2.12.10'
+    scalaCheck = '1.14.3'
+    scalaTest = '3.1.1'
+    junit = '4.12'
+    confluentVersion = '5.4.0'
+    scalaLoggingVersion = '3.9.2'
+    kafkaVersion = '2.4.0'
+    mockitoVersion = '1.13.0'
+    avroVersion = '1.8.2'
+    avro4sVersion = "1.6.4"
+    guavaVersion = "18.0"
+    json4sVersion = "3.6.7"
+    kcqlVersion =  "2.8.4"
+    smt = "2.0.0"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "https://packages.confluent.io/maven/" }
+    maven { url "https://repo.typesafe.com/typesafe/releases/" }
+}
+
+configurations {
+    provided
+    compile.extendsFrom provided
+}
+
+dependencies {
+    provided "org.scala-lang:scala-library:$scala"
+    provided "org.scala-lang:scala-compiler:$scala"
+    provided "com.typesafe.scala-logging:scala-logging_${scalaMajorVersion}:${scalaLoggingVersion}"
+    provided "org.apache.kafka:connect-json:$kafkaVersion"
+    provided "io.confluent:kafka-connect-avro-converter:$confluentVersion"
+    provided "io.confluent:kafka-schema-registry:$confluentVersion"
+    provided "org.apache.avro:avro:$avroVersion"
+    implementation "com.sksamuel.avro4s:avro4s-core_$scalaMajorVersion:$avro4sVersion"
+    implementation "org.json4s:json4s-native_$scalaMajorVersion:$json4sVersion"
+    implementation "org.json4s:json4s-jackson_$scalaMajorVersion:$json4sVersion"
+    implementation("com.landoop:kafka-connect-smt_$scalaMajorVersion:$smt"){
+        exclude group: "com.google.protobuf"
+        exclude group: "org.apache.calcite", module:"calcite-linq4j"
+        exclude group: "org.apache.httpcomponents"
     }
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven { url "https://packages.confluent.io/maven/" }
-        maven { url "https://repo.typesafe.com/typesafe/releases/" }
+    implementation("com.datamountaineer:kcql:$kcqlVersion") {
+        exclude group: "com.google.guava", module: "guava"
     }
 
-    configurations {
-        provided
-        compile.extendsFrom provided
-    }
+    testImplementation "org.mockito:mockito-scala_$scalaMajorVersion:$mockitoVersion"
+    testImplementation "org.scalacheck:scalacheck_$scalaMajorVersion:$scalaCheck"
+    testImplementation "org.scalatest:scalatest_$scalaMajorVersion:$scalaTest"
+    testImplementation "junit:junit:$junit"
+    testImplementation "org.apache.curator:curator-test:3.1.0"
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.5'
+    testImplementation 'org.pegdown:pegdown:1.1.0'
+    testImplementation "com.vladsch.flexmark:flexmark-all:0.35.10"
+}
 
-    dependencies {
-        provided "org.scala-lang:scala-library:$scala"
-        provided "org.scala-lang:scala-compiler:$scala"
-        provided "com.typesafe.scala-logging:scala-logging_${scalaMajorVersion}:${scalaLoggingVersion}"
-        provided "org.apache.kafka:connect-json:$kafkaVersion"
-        provided "io.confluent:kafka-connect-avro-converter:$confluentVersion"
-        provided "io.confluent:kafka-schema-registry:$confluentVersion"
-        provided "org.apache.avro:avro:$avroVersion"
-        implementation "com.sksamuel.avro4s:avro4s-core_$scalaMajorVersion:$avro4sVersion"
-        implementation "org.json4s:json4s-native_$scalaMajorVersion:$json4sVersion"
-        implementation "org.json4s:json4s-jackson_$scalaMajorVersion:$json4sVersion"
-        implementation("com.landoop:kafka-connect-smt_$scalaMajorVersion:$smt"){
-            exclude group: "com.google.protobuf"
-            exclude group: "org.apache.calcite", module:"calcite-linq4j"
-            exclude group: "org.apache.httpcomponents"
+jar {
+    dependsOn configurations.runtimeClasspath
+    from {
+        (configurations.runtimeClasspath - configurations.provided).collect {
+            it.isDirectory() ? it : zipTree(it)
         }
-
-        implementation("com.datamountaineer:kcql:$kcqlVersion") {
-            exclude group: "com.google.guava", module: "guava"
-        }
-
-        testImplementation "org.mockito:mockito-scala_$scalaMajorVersion:$mockitoVersion"
-        testImplementation "org.scalacheck:scalacheck_$scalaMajorVersion:$scalaCheck"
-        testImplementation "org.scalatest:scalatest_$scalaMajorVersion:$scalaTest"
-        testImplementation "junit:junit:$junit"
-        testImplementation "org.apache.curator:curator-test:3.1.0"
-        testImplementation 'org.powermock:powermock-module-junit4:1.6.5'
-        testImplementation 'org.pegdown:pegdown:1.1.0'
-        testImplementation "com.vladsch.flexmark:flexmark-all:0.35.10"
     }
+    jar.archiveFileName = "$project.name-$project.version-$confluentVersion-all.jar"
+}
 
-    jar {
-        dependsOn configurations.runtimeClasspath
-        from {
-            (configurations.runtimeClasspath - configurations.provided).collect {
-                it.isDirectory() ? it : zipTree(it)
-            }
-        }
-        jar.archiveFileName = "$project.name-$project.version-$confluentVersion-all.jar"
-    }
+test {
+    maxParallelForks = 1
+    minHeapSize '256m'
+    maxHeapSize '2048m'
+    systemProperty 'keystore', projectDir.canonicalPath + "/src/test/resources/stc_keystore.jks"
+    systemProperty 'truststore', projectDir.canonicalPath + "/src/test/resources/stc_truststore.jks"
+}
 
-    test {
-        maxParallelForks = 1
-        minHeapSize '256m'
-        maxHeapSize '2048m'
-        systemProperty 'keystore', projectDir.canonicalPath + "/src/test/resources/stc_keystore.jks"
-        systemProperty 'truststore', projectDir.canonicalPath + "/src/test/resources/stc_truststore.jks"
-    }
+task testJar(type: Jar, dependsOn: testClasses) {
+    archiveFileName = "test-${project.archivesBaseName}"
+    from sourceSets.test.output
+}
 
-    task testJar(type: Jar, dependsOn: testClasses) {
-        archiveFileName = "test-${project.archivesBaseName}"
-        from sourceSets.test.output
-    }
+configurations {
+    tests
+}
 
-    configurations {
-        tests
-    }
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
 
-    task sourcesJar(type: Jar) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
+task scaladocJar(type: Jar) {
+    classifier = 'scaladoc'
+    from '../LICENSE'
+    from scaladoc
+}
 
-    task scaladocJar(type: Jar) {
-        classifier = 'scaladoc'
-        from '../LICENSE'
-        from scaladoc
-    }
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
 
-    task javadocJar(type: Jar) {
-        classifier = 'javadoc'
-        from javadoc
-    }
+task compile(dependsOn: 'compileScala')
+javadoc.dependsOn scaladoc
 
-    task compile(dependsOn: 'compileScala')
-    javadoc.dependsOn scaladoc
+artifacts {
+    archives javadocJar, scaladocJar, sourcesJar
+}
 
-    artifacts {
-        archives javadocJar
-        archives scaladocJar
-        archives sourcesJar
-    }
+signing {
+    required { gradle.taskGraph.hasTask("publish") }
+    sign configurations.archives
+}
 
-    signing {
-        required { gradle.taskGraph.hasTask("publish") }
-        sign configurations.archives
-    }
+nexusStaging {
+    username ossrhUsername
+    password ossrhPassword
+}
 
-    nexusStaging {
-        username ossrhUsername
-        password ossrhPassword
-    }
-
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                customizePom(pom)
-                groupId = project.group
-                artifactId = project.description
-                version = project.version
-
-                from components.java
-
-                // create the sign pom artifact
-                pom.withXml {
-                    def pomFile = file("${project.buildDir}/generated-pom.xml")
-                    writeTo(pomFile)
-                    def pomAscFile = signing.sign(pomFile).signatureFiles[0]
-                    artifact(pomAscFile) {
-                        classifier = null
-                        extension = 'pom.asc'
-                    }
-                }
-
-                artifact(sourcesJar) {
-                    classifier = 'sources'
-                }
-                artifact(javadocJar) {
-                    classifier = 'javadoc'
-                }
-                artifact(scaladocJar) {
-                    classifier = 'scaladoc'
-                }
-
-
-                // create the signed artifacts
-                project.tasks.signArchives.signatureFiles.each {
-                    artifact(it) {
-                        def matcher = it.file =~ /-(sources|javadoc|scaladoc)\.jar\.asc$/
-                        if (matcher.find()) {
-                            classifier = matcher.group(1)
-                        } else {
-                            classifier = null
-                        }
-                        extension = 'jar.asc'
-                    }
-                }
-            }
-        }
+// OSSRH publication
+if (project.hasProperty('release')) {
+    uploadArchives {
         repositories {
-            maven {
-                url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-                credentials {
-                    username ossrhUsername
-                    password ossrhPassword
+            mavenDeployer {
+                // POM signature
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+                // Target repository
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    authentication(userName: ossrhUsername, password: ossrhPassword)
+                }
+                pom.project {
+                    name project.name
+                    description project.description
+                    packaging 'jar'
+                    url 'https://github.com/lensesio/kafka-connect-common'
+
+                    scm {
+                        connection 'scm:git:https://github.com/lensesio/kafka-connect-common.git'
+                        developerConnection 'scm:git:git@github.com:lensesio/kafka-connect-common.git'
+                        url 'https://github.com/lensesio/kafka-connect-common.git'
+                    }
+
+                    licenses {
+                        license {
+                            name 'Apache License 2.0'
+                            url 'http://www.apache.org/licenses/LICENSE-2.0.html'
+                            distribution 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'andrewstevenson'
+                            name = 'Andrew Stevenson'
+                            email = 'andrew@lenses.io'
+                        }
+                    }
                 }
             }
         }
     }
 }
-
-def customizePom(pom) {
-    pom.withXml {
-        def root = asNode()
-        root.appendNode('description', 'Common components used across the datamountaineer kafka connect connectors.')
-
-        // eliminate test-scoped dependencies (no need in maven central POMs)
-        root.dependencies.removeAll { dep ->
-            dep.scope == "test"
-        }
-
-        // add all items necessary for maven central publication
-        root.children().last() + {
-            name project.name
-            url 'https://github.com/lensesio/kafka-connect-common'
-
-            organization {
-                name 'lenses.io'
-                url 'https://github.com/lensesio'
-            }
-
-            licenses {
-                license {
-                    name 'Apache License 2.0'
-                    url 'https://github.com/mautini/schemaorg-java/blob/master/LICENSE'
-                    distribution 'repo'
-                }
-            }
-            scm {
-                connection 'scm:git:https://github.com/lensesio/kafka-connect-common.git'
-                developerConnection 'scm:git:git@github.com:lensesio/kafka-connect-common.git'
-                url 'https://github.com/lensesio/kafka-connect-common.git'
-            }
-            developers {
-                developer {
-                    name 'Andrew Stevenson'
-                }
-            }
-        }
-    }
-}
-
-def isRelease() {
-    project.hasProperty('release')
-}
-
-model {
-    tasks.generatePomFileForMavenJavaPublication {
-        destination = file("$buildDir/generated-pom.xml")
-    }
-    tasks.publishMavenJavaPublicationToMavenLocal {
-        dependsOn project.tasks.signArchives
-    }
-    tasks.publishMavenJavaPublicationToMavenRepository {
-        dependsOn project.tasks.signArchives
-    }
-}
-
-gradle.taskGraph.whenReady { graph -> publishMavenJavaPublicationToMavenRepository.onlyIf { isRelease().toBoolean() } }
 
 project.tasks.compileScala.scalaCompileOptions.additionalParameters = ["-target:jvm-1.8"]
 project.tasks.compileTestScala.scalaCompileOptions.additionalParameters = ["-target:jvm-1.8"]
