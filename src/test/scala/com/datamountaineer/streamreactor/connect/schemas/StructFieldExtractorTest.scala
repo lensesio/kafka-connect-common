@@ -16,13 +16,11 @@
 
 package com.datamountaineer.streamreactor.connect.schemas
 
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-
 import org.apache.kafka.connect.data.{Date, Schema, SchemaBuilder, Struct}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class StructFieldExtractorTest extends WordSpec with Matchers {
+class StructFieldExtractorTest extends AnyWordSpec with Matchers {
   "StructFieldExtractor" should {
     "return all the fields and their bytes value" in {
       val schema = SchemaBuilder.struct().name("com.example.Person")

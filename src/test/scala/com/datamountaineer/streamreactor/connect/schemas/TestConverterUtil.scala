@@ -23,8 +23,6 @@ import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.json.JsonConverter
 import org.apache.kafka.connect.sink.SinkRecord
 import org.json4s.jackson.JsonMethods._
-
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 /**
@@ -120,7 +118,7 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
 
     "convert a json via JsonConverter and then apply a field alias and one remove " in {
       val converter = new JsonConverter()
-      converter.configure(Map("schemas.enable" -> false), false)
+      converter.configure(Map("schemas.enable" -> false).asJava, false)
 
       val schemaAndValue = converter.toConnectData("topicA",
         """

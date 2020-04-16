@@ -17,8 +17,10 @@
 package com.datamountaineer.streamreactor.connect.offsets
 
 import com.datamountaineer.streamreactor.connect.TestUtilsBase
-import org.scalatest.mock.MockitoSugar
-import org.scalatest.{Matchers, WordSpec}
+import org.mockito.MockitoSugar
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+
 import scala.collection.JavaConverters._
 
 /**
@@ -29,7 +31,7 @@ import scala.collection.JavaConverters._
   * Created by andrew@datamountaineer.com on 27/04/16.
   * stream-reactor
   */
-class TestOffsetHandler extends WordSpec with Matchers with MockitoSugar with TestUtilsBase {
+class TestOffsetHandler extends AnyWordSpec with Matchers with MockitoSugar with TestUtilsBase {
   "should return an offset" in {
     val lookupPartitionKey = "test_lk_key"
     val offsetValue = "2013-01-01 00:05+0000"

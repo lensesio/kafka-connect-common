@@ -19,7 +19,7 @@ package com.datamountaineer.streamreactor.connect.utils
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.kafka.connect.connector.ConnectRecord
 
 import scala.collection.immutable.Seq

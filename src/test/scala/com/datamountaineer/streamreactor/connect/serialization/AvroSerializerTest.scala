@@ -18,9 +18,11 @@ package com.datamountaineer.streamreactor.connect.serialization
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class AvroSerializerTest extends WordSpec with Matchers {
+
+class AvroSerializerTest extends AnyWordSpec with Matchers {
   "AvroSerializer" should {
     "read and write from and to Avro" in {
       val book = Book("On Intelligence", Author("Jeff", "Hawkins", 1957), "0805078533", 273, 14.72)

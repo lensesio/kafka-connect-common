@@ -1,49 +1,50 @@
 ![Actions Status](https://github.com/Landoop/kafka-connect-common/workflows/CI/badge.svg)
 [<img 
-src="https://img.shields.io/badge/latest%20release-v01.1.9-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
+src="https://img.shields.io/badge/latest%20release-v02.0.0-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
 Kafka Connect Common is in Maven, include it in your connector.
 
 
 # Releases
 
 
-| Version | Confluent Version |Kafka| Kcql Version |
-| ------- | ----------------- |-----|--------------|
-|1.1.9|5.0.0|1.1.0|2.8.4
-|1.1.8|5.0.0|1.1.0|2.8.4
-|1.1.5|5.0.0|1.1.0|2.8.2
-|1.1.5|4.1.0|1.1.0|2.8.2
-|1.1.4|4.1.0|1.1.0|2.8.2
-|1.1.3|4.1.0|1.1.0|2.8
-|1.1.2|4.1.0|1.1.0|2.7
-|1.1.1|4.1.0|1.1.0|2.5.1
-|1.1.0|4.1.0|1.1.0|2.5.1
-|1.0.9|4.0.0|1.0.0|2.5.1
-|1.0.8|4.0.0|1.0.0|2.5.1
-|1.0.7|4.0.0|1.0.0|2.5.1
-|1.0.6|4.0.0|1.0.0|2.5.1
-|1.0.5|4.0.0|1.0.0|2.5.1
-|1.0.4|4.0.0|1.0.0|2.5.1
-|1.0.3|4.0.0|1.0.0|2.4
-|1.0.2|4.0.0|1.0.0|2.4
-|1.0.1|4.0.0|1.0.0|2.4
-|1.0.2|4.0.0|1.0.0|2.4
-|1.0.1|4.0.0|1.0.0|2.4
-|1.0.0|4.0.0|1.0.0|2.4
+| Version | Confluent Version |Kafka| Kcql Version | Scala Version |
+| ------- | ----------------- |-----|--------------|---------------|
+|2.0.0|5.4.0|2.4.0|2.8.4|2.12
+|1.1.9|5.0.0|1.1.0|2.8.4|2.11
+|1.1.8|5.0.0|1.1.0|2.8.4|2.11
+|1.1.5|5.0.0|1.1.0|2.8.2|2.11
+|1.1.5|4.1.0|1.1.0|2.8.2|2.11
+|1.1.4|4.1.0|1.1.0|2.8.2|2.11
+|1.1.3|4.1.0|1.1.0|2.8|2.11
+|1.1.2|4.1.0|1.1.0|2.7|2.11
+|1.1.1|4.1.0|1.1.0|2.5.1|2.11
+|1.1.0|4.1.0|1.1.0|2.5.1|2.11
+|1.0.9|4.0.0|1.0.0|2.5.1|2.11
+|1.0.8|4.0.0|1.0.0|2.5.1|2.11
+|1.0.7|4.0.0|1.0.0|2.5.1|2.11
+|1.0.6|4.0.0|1.0.0|2.5.1|2.11
+|1.0.5|4.0.0|1.0.0|2.5.1|2.11
+|1.0.4|4.0.0|1.0.0|2.5.1|2.11
+|1.0.3|4.0.0|1.0.0|2.4|2.11
+|1.0.2|4.0.0|1.0.0|2.4|2.11
+|1.0.1|4.0.0|1.0.0|2.4|2.11
+|1.0.2|4.0.0|1.0.0|2.4|2.11
+|1.0.1|4.0.0|1.0.0|2.4|2.11
+|1.0.0|4.0.0|1.0.0|2.4|2.11
 
 ```bash
 #maven
 <dependency>
 	<groupId>com.datamountaineer</groupId>
 	<artifactId>kafka-connect-common</artifactId>
-	<version>1.1.9</version>
+	<version>2.0.0</version>
 </dependency>
 
 #sbt
-libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "1.1.9"
+libraryDependencies += "com.datamountaineer" % "kafka-connect-common" % "2.0.0"
 
 #gradle
-'com.datamountaineer:kafka-connect-common:1.1.9'
+'com.datamountaineer:kafka-connect-common:2.0.0'
 ```
 
 # kafka-connect-common

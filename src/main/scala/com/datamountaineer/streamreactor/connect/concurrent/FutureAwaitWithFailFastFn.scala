@@ -18,7 +18,7 @@ package com.datamountaineer.streamreactor.connect.concurrent
 
 import java.util.concurrent.{ExecutorService, TimeUnit}
 
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -35,7 +35,7 @@ object FutureAwaitWithFailFastFn extends StrictLogging {
 
     //stop on the first failure
     futures.foreach { f =>
-      f.onFailure { case t =>
+      f.failed.foreach { case t =>
         if (promise.tryFailure(t)) {
           executorService.shutdownNow()
         }
@@ -71,7 +71,7 @@ object FutureAwaitWithFailFastFn extends StrictLogging {
 
     //stop on the first failure
     futures.foreach { f =>
-      f.onFailure { case t =>
+      f.failed.foreach { case t =>
         if (promise.tryFailure(t)) {
           executorService.shutdownNow()
         }

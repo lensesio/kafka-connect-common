@@ -18,7 +18,7 @@ package com.datamountaineer.streamreactor.connect.source
 
 import java.time.Duration
 
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 /**
   * Created by andrew@datamountaineer.com on 03/03/2017. 

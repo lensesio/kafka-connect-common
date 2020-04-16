@@ -19,10 +19,11 @@ package com.datamountaineer.streamreactor.connect.sink
 import com.datamountaineer.streamreactor.connect.rowkeys.StringStructFieldsStringKeyBuilder
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.apache.kafka.connect.sink.SinkRecord
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 
-class StringStructFieldsStringKeyBuilderTest extends WordSpec with Matchers {
+class StringStructFieldsStringKeyBuilderTest extends AnyWordSpec with Matchers {
   "StructFieldsStringKeyBuilder" should {
     "raise an exception if the field is not present in the struct" in {
       intercept[IllegalArgumentException] {

@@ -16,11 +16,9 @@
 
 package com.datamountaineer.streamreactor.connect.converters.source
 
-import java.nio.charset.Charset
 import java.util.Collections
 
 import com.landoop.json.sql.JacksonJson
-import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.source.SourceRecord
 
 

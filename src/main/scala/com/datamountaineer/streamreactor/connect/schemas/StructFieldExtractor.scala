@@ -26,7 +26,7 @@ import java.util.TimeZone
 
 import org.apache.kafka.connect.data._
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 trait StructFieldsValuesExtractor {
   def get(struct: Struct): Seq[(String, Any)]
@@ -48,8 +48,8 @@ case class StructFieldsExtractor(includeAllFields: Boolean, fieldsAliasMap: Map[
     **/
   def get(struct: Struct): Seq[(String, AnyRef)] = {
     val schema = struct.schema()
-    val fields: Seq[Field] = if (includeAllFields) schema.fields()
-    else schema.fields().filter(f => fieldsAliasMap.contains(f.name()))
+    val fields: Seq[Field] = if (includeAllFields) schema.fields().asScala
+    else schema.fields().asScala.filter(f => fieldsAliasMap.contains(f.name()))
 
     val fieldsAndValues = fields.flatMap { case field =>
       getFieldValue(field, struct).map(value => fieldsAliasMap.getOrElse(field.name(), field.name()) -> value)

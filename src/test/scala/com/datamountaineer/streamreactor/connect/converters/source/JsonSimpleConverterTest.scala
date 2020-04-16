@@ -22,9 +22,10 @@ import com.datamountaineer.streamreactor.connect.converters.MsgKey
 import com.sksamuel.avro4s.{RecordFormat, SchemaFor}
 import io.confluent.connect.avro.AvroData
 import org.apache.avro.Schema
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class JsonSimpleConverterTest extends WordSpec with Matchers {
+class JsonSimpleConverterTest extends AnyWordSpec with Matchers {
   val topic = "the_real_topic"
   val sourceTopic = "source_topic"
   val avroData = new AvroData(4)

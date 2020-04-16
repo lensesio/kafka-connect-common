@@ -19,16 +19,20 @@ package com.datamountaineer.streamreactor.connect.concurrent
 import java.util.concurrent.Executors
 
 import com.datamountaineer.streamreactor.connect.concurrent.ExecutorExtension._
-import org.scalatest.concurrent.{Eventually, Timeouts}
+import org.scalactic.source.Position
+import org.scalatest.concurrent.{Eventually, TimeLimits}
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Span}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
 
 import scala.util.{Failure, Try}
 
 /**
   * Created by stepi on 22/06/16.
   */
-class FutureAwaitWithFailFastFnTest extends WordSpec with Matchers with Eventually with Timeouts {
+class FutureAwaitWithFailFastFnTest extends AnyWordSpec with Matchers with Eventually with TimeLimits {
+
+
   "FutureAwaitWithFailFastFn" should {
     "return when all the futures have completed" in {
       val exec = Executors.newFixedThreadPool(10)
@@ -36,12 +40,11 @@ class FutureAwaitWithFailFastFnTest extends WordSpec with Matchers with Eventual
         Thread.sleep(300)
         i
       })
-
       eventually {
         val result = FutureAwaitWithFailFastFn(exec, futures)
         exec.isTerminated shouldBe true
         result shouldBe Seq(1, 2, 3, 4, 5)
-      }(PatienceConfig(Span(3000, Millis), Span(500, Millis)))
+      }
     }
 
     "stop when the first futures times out" in {
@@ -62,8 +65,10 @@ class FutureAwaitWithFailFastFnTest extends WordSpec with Matchers with Eventual
         t.isFailure shouldBe true
         t.asInstanceOf[Failure[_]].exception.getMessage shouldBe "this task failed."
         exec.isTerminated shouldBe true
-      }(PatienceConfig(Span(5000, Millis), Span(500, Millis)))
+      }
     }
   }
 
 }
+
+

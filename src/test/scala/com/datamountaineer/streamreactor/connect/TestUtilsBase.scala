@@ -25,8 +25,11 @@ import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.source.SourceTaskContext
 import org.apache.kafka.connect.storage.OffsetStorageReader
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
+import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfter
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+
 import scala.collection.JavaConverters._
 
 /**
@@ -34,7 +37,7 @@ import scala.collection.JavaConverters._
   * stream-reactor
   */
 
-trait TestUtilsBase extends WordSpec with Matchers with BeforeAndAfter with MockitoSugar {
+trait TestUtilsBase extends AnyWordSpec with Matchers with BeforeAndAfter with MockitoSugar {
   val TOPIC = "sink_test"
   val VALUE_JSON_STRING="{\"id\":\"sink_test-1-1\",\"int_field\":1,\"long_field\":1,\"string_field\":\"foo\"}"
   val KEY="topic_key_1"

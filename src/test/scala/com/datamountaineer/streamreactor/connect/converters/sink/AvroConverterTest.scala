@@ -24,14 +24,16 @@ import com.datamountaineer.streamreactor.connect.converters.MsgKey
 import com.sksamuel.avro4s.RecordFormat
 import io.confluent.connect.avro.AvroData
 import org.apache.avro.{Schema, SchemaBuilder}
-import org.apache.kafka.connect.data.{Schema => KafkaSchema, SchemaBuilder => KafkaSchemaBuilder, Struct}
+import org.apache.kafka.connect.data.{Struct, Schema => KafkaSchema, SchemaBuilder => KafkaSchemaBuilder}
 import org.apache.kafka.connect.errors.DataException
 import org.apache.kafka.connect.sink.SinkRecord
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
 
 import scala.reflect.io.Path
 
-class AvroConverterTest extends WordSpec with Matchers with BeforeAndAfterAll {
+class AvroConverterTest extends AnyWordSpec with Matchers with BeforeAndAfterAll {
   private val sinkTopic = "somesink"
   private val folder = new File(UUID.randomUUID().toString)
   folder.mkdir()

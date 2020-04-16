@@ -112,11 +112,10 @@ object JsonConverterWithSchemaEvolution {
         }.toMap
         val schema = builder.build()
 
-        import scala.collection.JavaConversions._
+        import scala.collection.JavaConverters._
         aggregatedSchema
           .foreach { schema =>
-            schema.fields()
-              .toSeq
+            schema.fields().asScala
               .withFilter(f => !fields.contains(f.name()))
               .foreach { f =>
                 builder.field(f.name(), f.schema())

@@ -17,7 +17,6 @@ package com.datamountaineer.streamreactor.connect.converters
 
 import com.sksamuel.avro4s.{RecordFormat, SchemaFor}
 import io.confluent.connect.avro.AvroData
-import org.apache.kafka.connect.data.Schema
 
 case class MsgKey(topic: String, id: String)
 

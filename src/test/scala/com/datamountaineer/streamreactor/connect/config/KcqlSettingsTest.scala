@@ -16,18 +16,15 @@
 
 package com.datamountaineer.streamreactor.connect.config
 
-import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util
 
 import com.datamountaineer.streamreactor.connect.config.base.traits.KcqlSettings
 import org.apache.kafka.common.config.types.Password
-import org.apache.kafka.connect.data.{Date, Schema, SchemaBuilder, Struct}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-import scala.collection.immutable.ListSet
 
-class KcqlSettingsTest extends WordSpec with Matchers {
+class KcqlSettingsTest extends AnyWordSpec with Matchers {
 
   import scala.collection.JavaConverters._
 
@@ -75,11 +72,11 @@ class KcqlSettingsTest extends WordSpec with Matchers {
 
       val kcql = "UPSERT INTO coll SELECT * FROM t PK a,b,c,d"
       val expectedKeys = List("a","b","c","d")
-      val keys = KS(kcql).getUpsertKeys(preserveFullKeys=true)("t")
+      val keys = KS(kcql).getUpsertKeys(preserveFullKeys=true)("t").toList.sorted
       // SCALA 2.12 WARNING: If this fails when you upgrade to 2.12, you need to 
       // modify KcqlSettings to remove all the reverse() calls when constructing
       // the ListSets.
-      keys.toList shouldBe expectedKeys
+      keys shouldBe expectedKeys
     }
 
   }

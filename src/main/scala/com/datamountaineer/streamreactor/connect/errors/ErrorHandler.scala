@@ -19,7 +19,7 @@ package com.datamountaineer.streamreactor.connect.errors
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.util.{Failure, Success, Try}
 
