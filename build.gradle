@@ -24,6 +24,7 @@ buildscript {
     dependencies {
         classpath 'com.github.maiflai:gradle-scalatest:0.25'
         classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.9.0'
+        classpath 'net.researchgate:gradle-release:2.8.1'
     }
 }
 
@@ -112,6 +113,10 @@ allprojects {
             (configurations.runtimeClasspath - configurations.provided).collect {
                 it.isDirectory() ? it : zipTree(it)
             }
+        } {
+            exclude "META-INF/*.SF"
+            exclude "META-INF/*.DSA"
+            exclude "META-INF/*.RSA"
         }
         jar.archiveFileName = "$project.name-$project.version-$confluentVersion-all.jar"
     }
