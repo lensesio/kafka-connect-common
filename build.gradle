@@ -58,7 +58,7 @@ allprojects {
         mockitoVersion = '1.13.0'
         avroVersion = '1.8.2'
         avro4sVersion = "1.6.4"
-        guavaVersion = "29.0"
+        guavaVersion = "18.0"
         json4sVersion = "3.6.7"
         kcqlVersion =  "2.8.4"
         smt = "2.0.0"
@@ -76,10 +76,16 @@ allprojects {
         compile.extendsFrom provided
     }
 
+    configurations.all {
+        resolutionStrategy {
+            force 'com.google.guava:guava:18.0'
+        }
+    }
+
     dependencies {
         provided "org.scala-lang:scala-library:$scala"
         provided "org.scala-lang:scala-compiler:$scala"
-        provided "com.google.guava:guava:$guavaVersion-jre"
+        provided "com.google.guava:guava:$guavaVersion"
         provided "com.typesafe.scala-logging:scala-logging_${scalaMajorVersion}:${scalaLoggingVersion}"
         provided "org.apache.kafka:connect-json:$kafkaVersion"
         provided ("io.confluent:kafka-connect-avro-converter:$confluentVersion") {
