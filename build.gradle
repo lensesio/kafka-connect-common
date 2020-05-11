@@ -58,7 +58,7 @@ allprojects {
         mockitoVersion = '1.13.0'
         avroVersion = '1.8.2'
         avro4sVersion = "1.6.4"
-        guavaVersion = "18.0"
+        guavaVersion = "29.0"
         json4sVersion = "3.6.7"
         kcqlVersion =  "2.8.4"
         smt = "2.0.0"
@@ -79,10 +79,15 @@ allprojects {
     dependencies {
         provided "org.scala-lang:scala-library:$scala"
         provided "org.scala-lang:scala-compiler:$scala"
+        provided "com.google.guava:guava:$guavaVersion-jre"
         provided "com.typesafe.scala-logging:scala-logging_${scalaMajorVersion}:${scalaLoggingVersion}"
         provided "org.apache.kafka:connect-json:$kafkaVersion"
-        provided "io.confluent:kafka-connect-avro-converter:$confluentVersion"
-        provided "io.confluent:kafka-schema-registry:$confluentVersion"
+        provided ("io.confluent:kafka-connect-avro-converter:$confluentVersion") {
+            exclude group: "com.google.guava", module: "guava"
+        }
+        provided ("io.confluent:kafka-schema-registry:$confluentVersion") {
+            exclude group: "com.google.guava", module: "guava"
+        }
         provided "org.apache.avro:avro:$avroVersion"
         implementation "com.sksamuel.avro4s:avro4s-core_$scalaMajorVersion:$avro4sVersion"
         implementation "org.json4s:json4s-native_$scalaMajorVersion:$json4sVersion"
