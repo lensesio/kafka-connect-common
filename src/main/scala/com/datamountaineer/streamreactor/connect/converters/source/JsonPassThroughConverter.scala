@@ -31,31 +31,24 @@ class JsonPassThroughConverter extends Converter {
                        keyDelimiter: String = "."): SourceRecord = {
     require(bytes != null, s"Invalid $bytes parameter")
 
+    val json = new String(bytes, "utf-8")
+    val jsonNode = JacksonJson.asJson(json)
+    var keysValue = keys.flatMap { key =>
+      Option(KeyExtractor.extract(jsonNode, key.split('.').toVector)).map(_.toString)
+    }.mkString(keyDelimiter)
 
-    if (keys.nonEmpty) {
-      val json = new String(bytes, "utf-8")
-
-      val jsonNode = JacksonJson.asJson(json)
-      val keysValue = keys.flatMap { key =>
-        Option(KeyExtractor.extract(jsonNode, key.split('.').toVector)).map(_.toString)
-      }.mkString(keyDelimiter)
-
-      new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
-        null,
-        kafkaTopic,
-        null,
-        keysValue,
-        null,
-        json)
-    } else {
-      new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
-        null,
-        kafkaTopic,
-        null,
-        s"$sourceTopic$keyDelimiter$messageId",
-        null,
-        bytes)
+    // If keys are not provided, default one will be constructed
+    if (keysValue == "") {
+      keysValue = s"$sourceTopic$keyDelimiter$messageId"
     }
+
+    new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),
+      null,
+      kafkaTopic,
+      null,
+      keysValue,
+      null,
+      json)
   }
 }
 
