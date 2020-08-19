@@ -60,7 +60,7 @@ allprojects {
         avro4sVersion = "1.6.4"
         guavaVersion = "18.0"
         json4sVersion = "3.6.7"
-        kcqlVersion =  "2.8.5"
+        kcqlVersion =  "2.8.6"
         smt = "2.0.0"
     }
 
@@ -169,6 +169,8 @@ allprojects {
     nexusStaging {
         username ossrhUsername
         password ossrhPassword
+        numberOfRetries = 50
+        delayBetweenRetriesInMillis = 3000
     }
 
 // OSSRH publication
