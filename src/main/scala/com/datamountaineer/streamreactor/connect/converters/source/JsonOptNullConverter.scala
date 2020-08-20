@@ -31,7 +31,8 @@ class JsonOptNullConverter extends Converter {
                        messageId: String,
                        bytes: Array[Byte],
                        keys:Seq[String] = Seq.empty,
-                       keyDelimiter:String = "."): SourceRecord = {
+                       keyDelimiter:String = ".",
+                       properties: Map[String, String] = Map.empty): SourceRecord = {
     require(bytes != null, s"Invalid $bytes parameter")
     val json = new String(bytes, Charset.defaultCharset)
     val schemaAndValue = JsonOptNullConverter.convert(sourceTopic, json)

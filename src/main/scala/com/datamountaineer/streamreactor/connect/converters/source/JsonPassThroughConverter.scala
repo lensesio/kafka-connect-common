@@ -28,7 +28,8 @@ class JsonPassThroughConverter extends Converter {
                        messageId: String,
                        bytes: Array[Byte],
                        keys: Seq[String] = Seq.empty,
-                       keyDelimiter: String = "."): SourceRecord = {
+                       keyDelimiter: String = ".",
+                       properties: Map[String, String] = Map.empty): SourceRecord = {
     require(bytes != null, s"Invalid $bytes parameter")
 
     val json = new String(bytes, "utf-8")

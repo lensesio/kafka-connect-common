@@ -38,7 +38,8 @@ class AvroConverter extends Converter {
                        messageId: String,
                        bytes: Array[Byte],
                        keys: Seq[String] = Seq.empty,
-                       keyDelimiter: String = "."): SourceRecord = {
+                       keyDelimiter: String = ".",
+                       properties: Map[String, String] = Map.empty): SourceRecord = {
     Option(bytes) match {
       case None =>
         new SourceRecord(Collections.singletonMap(Converter.TopicKey, sourceTopic),

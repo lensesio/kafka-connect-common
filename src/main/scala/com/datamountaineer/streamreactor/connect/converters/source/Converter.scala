@@ -23,9 +23,14 @@ import org.apache.kafka.connect.source.SourceRecord
 trait Converter {
   def initialize(map: Map[String, String]): Unit = {}
 
-  def convert(kafkaTopic: String, sourceTopic: String, messageId: String, bytes: Array[Byte], keys:Seq[String] = Seq.empty, keyDelimiter:String = "."): SourceRecord
+  def convert(kafkaTopic: String,
+              sourceTopic: String,
+              messageId: String,
+              bytes: Array[Byte],
+              keys: Seq[String] = Seq.empty,
+              keyDelimiter: String = ".",
+              properties: Map[String, String] = Map.empty): SourceRecord
 }
-
 
 object Converter {
   val TopicKey = "topic"
