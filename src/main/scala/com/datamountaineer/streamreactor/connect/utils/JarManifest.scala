@@ -45,8 +45,13 @@ case class JarManifest(location: URL) {
     case t: Throwable => msg = t.getMessage
   }
 
-
   def version(): String = map.getOrElse("StreamReactor-Version", "")
+
+  def gitRepo(): String = map.getOrElse("Git-Repo", "")
+
+  def gitCommit(): String = map.getOrElse("Git-Commit-Hash", "")
+
+  def gitTag(): String = map.getOrElse("Git-Tag", "")
 
   def printManifest(): String = {
     val msg = "unknown"
