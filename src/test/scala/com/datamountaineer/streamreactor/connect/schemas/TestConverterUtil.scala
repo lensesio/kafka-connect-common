@@ -19,10 +19,13 @@ package com.datamountaineer.streamreactor.connect.schemas
 import java.util
 
 import com.datamountaineer.streamreactor.connect.TestUtilsBase
+import io.confluent.connect.avro.AvroData
 import org.apache.kafka.connect.data.Schema
+import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.json.JsonConverter
 import org.apache.kafka.connect.sink.SinkRecord
 import org.json4s.jackson.JsonMethods._
+
 import scala.collection.JavaConverters._
 
 /**
@@ -61,6 +64,20 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
       fields.contains("id") shouldBe true
       fields.contains("int_field") shouldBe true
       fields.contains("long_field") shouldBe false
+    }
+
+    "handle nested fields" in {
+      val avroData = new AvroData(1)
+      val avro = buildNestedAvro()
+      val testRecord= avroData.toConnectData(avro.getSchema, avro)
+      val input = new SinkRecord(TOPIC, 1, Schema.STRING_SCHEMA, KEY, testRecord.schema(), testRecord.value(), 1)
+      val converted = convert(input, Map("x" -> "x", "y.a" -> "a"))
+      val fields = converted.valueSchema().fields().asScala.map(f => f.name()).toSet
+      fields.contains("x") shouldBe true
+      fields.contains("a") shouldBe true
+      fields.contains("long_field") shouldBe false
+      converted.value().asInstanceOf[Struct].get("x") shouldBe 1.1
+      converted.value().asInstanceOf[Struct].get("a") shouldBe "abc"
     }
 
     "return a ignore fields SinkRecord" in {
