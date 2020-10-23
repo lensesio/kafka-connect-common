@@ -169,7 +169,7 @@ allprojects {
     nexusStaging {
         username ossrhUsername
         password ossrhPassword
-        numberOfRetries = 50
+        numberOfRetries = 100
         delayBetweenRetriesInMillis = 3000
     }
 
