@@ -19,12 +19,15 @@ package com.datamountaineer.streamreactor.connect
 import java.util
 import java.util.Collections
 
-import org.apache.avro.generic.{GenericData, GenericRecord}
-import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
+import com.sksamuel.avro4s.RecordFormat
+import org.apache.avro.generic.GenericData
+import org.apache.avro.generic.GenericRecord
+import org.apache.kafka.connect.data.Schema
+import org.apache.kafka.connect.data.SchemaBuilder
+import org.apache.kafka.connect.data.Struct
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.source.SourceTaskContext
 import org.apache.kafka.connect.storage.OffsetStorageReader
-import org.mockito.Mockito._
 import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfter
 import org.scalatest.matchers.should.Matchers
@@ -52,6 +55,12 @@ trait TestUtilsBase extends AnyWordSpec with Matchers with BeforeAndAfter with M
     avro.put("long_field", 1L)
     avro.put("string_field", "foo")
     avro
+  }
+
+  def buildNestedAvro() : GenericRecord = {
+    val recordFormat = RecordFormat[WithNested]
+    val record = WithNested(1.1, Nested("abc", 100))
+    recordFormat.to(record)
   }
 
   //build a test record schema
@@ -106,3 +115,7 @@ trait TestUtilsBase extends AnyWordSpec with Matchers with BeforeAndAfter with M
     taskContext
   }
 }
+
+
+case class WithNested(x:Double, y:Nested)
+case class Nested(a:String, b:Int)
