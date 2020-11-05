@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.datamountaineer.streamreactor.connect.converters.source
+package com.datamountaineer.streamreactor.connect.converters.sink
 
 import com.datamountaineer.streamreactor.connect.schemas.ConverterUtil
 import com.fasterxml.jackson.databind.ObjectMapper

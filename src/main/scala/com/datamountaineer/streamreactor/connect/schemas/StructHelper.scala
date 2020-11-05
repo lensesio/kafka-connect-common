@@ -1,34 +1,46 @@
 package com.datamountaineer.streamreactor.connect.schemas
 
-import org.apache.kafka.connect.data.Struct
+import com.datamountaineer.streamreactor.connect.schemas.SchemaHelper.SchemaExtensions
+import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 
 import scala.collection.JavaConverters._
 
 object StructHelper {
 
   implicit final class StructExtension(val struct: Struct) extends AnyVal {
-    def extractValueFromPath(path: String): Either[FieldValueExtractionError, Option[AnyRef]] = {
+    def extractValueFromPath(
+        path: String): Either[FieldValueExtractionError, Option[AnyRef]] = {
       val fields = path.split('.')
-      val start: Either[FieldValueExtractionError, State] = Right(State(Some(struct), Vector.empty))
+      val start: Either[FieldValueExtractionError, State] = Right(
+        State(Some(struct), Vector.empty))
 
-      fields.foldLeft(start) {
-        case (l@Left(_), _) => l
-        case (s@Right(state), field) =>
-          state.value.fold(s.asInstanceOf[Either[FieldValueExtractionError, State]]) {
-            case s: Struct =>
-              s.fieldValue(field) match {
-                case Some(value) =>
-                  Right.apply[FieldValueExtractionError, State](state.copy(value = Some(value), path = state.path :+ field))
-                case None =>
-                  val path = (state.path :+ field).mkString(".")
-                  val msg = s"Field [$path] does not exist. Available Fields are [${s.schema().fields().asScala.map(_.name()).mkString(",")}]"
-                  Left.apply[FieldValueExtractionError, State](FieldValueExtractionError(path, msg))
-              }
-            case other =>
-              val path = state.path.mkString(".")
-              Left.apply[FieldValueExtractionError, State](FieldValueExtractionError(path, s"Expecting a a structure but found [$other]."))
-          }
-      }
+      fields
+        .foldLeft(start) {
+          case (l @ Left(_), _) => l
+          case (s @ Right(state), field) =>
+            state.value.fold(
+              s.asInstanceOf[Either[FieldValueExtractionError, State]]) {
+              case s: Struct =>
+                s.fieldValue(field) match {
+                  case Some(value) =>
+                    Right.apply[FieldValueExtractionError, State](
+                      state.copy(value = Some(value),
+                                 path = state.path :+ field))
+                  case None =>
+                    val path = (state.path :+ field).mkString(".")
+                    val msg =
+                      s"Field [$path] does not exist. Available Fields are [${s.schema().fields().asScala.map(_.name()).mkString(",")}]"
+                    Left.apply[FieldValueExtractionError, State](
+                      FieldValueExtractionError(path, msg))
+                }
+              case other =>
+                val path = state.path.mkString(".")
+                Left.apply[FieldValueExtractionError, State](
+                  FieldValueExtractionError(
+                    path,
+                    s"Expecting a a structure but found [$other]."))
+            }
+        }
         .map(_.value)
     }
 
@@ -36,6 +48,86 @@ object StructHelper {
       Option(struct.schema().field(field)).map { _ =>
         struct.get(field)
       }
+    }
+
+    def ++(input: Struct): Struct = {
+      val builder = SchemaBuilder.struct()
+      struct
+        .schema()
+        .fields()
+        .asScala
+        .toList
+        .foreach(f => builder.field(f.name(), f.schema()))
+      input
+        .schema()
+        .fields()
+        .asScala
+        .toList
+        .foreach(f => builder.field(f.name(), f.schema()))
+      val output = new Struct(builder.build())
+      addFieldValuesToStruct(
+        struct,
+        output,
+        struct.schema().fields().asScala.map(f => (f.name(), f.name())).toMap)
+      addFieldValuesToStruct(
+        input,
+        output,
+        input.schema().fields().asScala.map(f => (f.name(), f.name())).toMap)
+      output
+    }
+
+    def reduceToSchema(schema: Schema,
+                       fields: Map[String, String],
+                       ignoreFields: Set[String]): Struct = {
+
+      val allFields = fields.contains("*")
+
+      if (fields.nonEmpty && allFields && ignoreFields.isEmpty) {
+        struct
+      } else {
+        // filter the fields if for the value
+        val extractFields = if (allFields) {
+          schema
+            .fields()
+            .asScala
+            .filterNot(f => ignoreFields.contains(f.name()))
+            .map(f => (f.name, f.name()))
+            .toMap
+        } else {
+          fields.filterNot { case (k, _) => ignoreFields.contains(k) }
+        }
+        val newStruct = new Struct(newSchemaWithFields(extractFields, schema))
+        addFieldValuesToStruct(struct, newStruct, extractFields)
+        newStruct
+      }
+    }
+
+    private def addFieldValuesToStruct(oldStruct: Struct,
+                                       newStruct: Struct,
+                                       fields: Map[String, String]): Unit = {
+      fields
+        .foreach {
+          case (name, alias) =>
+            oldStruct.extractValueFromPath(name) match {
+              case Left(value)  => throw new RuntimeException(value.msg)
+              case Right(value) => newStruct.put(alias, value.orNull)
+            }
+        }
+    }
+
+    private def newSchemaWithFields(fields: Map[String, String],
+                                    schema: Schema): Schema = {
+      val builder = SchemaBuilder.struct
+      fields
+        .foreach {
+          case (name, alias) =>
+            schema.extractSchema(name) match {
+              case Left(value)  => throw new RuntimeException(value.msg)
+              case Right(value) => builder.field(alias, value)
+            }
+        }
+
+      builder.build()
     }
   }
 

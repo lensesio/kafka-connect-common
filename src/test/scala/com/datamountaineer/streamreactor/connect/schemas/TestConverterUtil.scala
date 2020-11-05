@@ -19,9 +19,9 @@ package com.datamountaineer.streamreactor.connect.schemas
 import java.util
 
 import com.datamountaineer.streamreactor.connect.TestUtilsBase
+import com.datamountaineer.streamreactor.connect.schemas.SinkRecordConverterHelper.SinkRecordExtension
 import io.confluent.connect.avro.AvroData
-import org.apache.kafka.connect.data.Schema
-import org.apache.kafka.connect.data.Struct
+import org.apache.kafka.connect.data.{Schema, Struct}
 import org.apache.kafka.connect.json.JsonConverter
 import org.apache.kafka.connect.sink.SinkRecord
 import org.json4s.jackson.JsonMethods._
@@ -29,7 +29,7 @@ import org.json4s.jackson.JsonMethods._
 import scala.collection.JavaConverters._
 
 /**
-  * Created by andrew@datamountaineer.com on 29/02/16. 
+  * Created by andrew@datamountaineer.com on 29/02/16.
   * stream-reactor
   */
 class TestConverterUtil extends TestUtilsBase with ConverterUtil {
@@ -232,6 +232,263 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
 
       val expected ="{\"id\":1,\"tagsRenamed\":[\"home\",\"green\"]}"
       actual shouldBe expected
+    }
+
+
+    "add key fields and headers to record for Struct" in {
+      val originalRecord = sinkRecordWithKeyHeaders()
+      val expected = "{\"key_int_field\":1,\"int_field\":1,\"header_alias_field_3\":\"boo\"}"
+
+      val combinedRecord = originalRecord.newFilteredRecord(
+        fields = Map("int_field" -> "int_field"),
+        ignoreFields = Set.empty[String],
+        keyFields = Map("key_int_field" -> "key_int_field"),
+        headerFields = Map("header_field_3" -> "header_alias_field_3")
+      )
+
+      combinedRecord.valueSchema().fields().asScala.count(_.name().equals("key_int_field")) shouldBe 1
+      combinedRecord.valueSchema().fields().asScala.count(_.name().equals("header_alias_field_3")) shouldBe 1
+      combinedRecord.valueSchema().fields().asScala.size shouldBe 3
+
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
+
+      //not retain key or headers
+      combinedRecord.keySchema() shouldBe null
+      combinedRecord.key() shouldBe null
+      combinedRecord.headers().size() shouldBe 0
+    }
+
+    "should not add key and header fields for struct" in {
+
+      val originalRecord = sinkRecordWithKeyHeaders()
+
+      val combinedRecord = originalRecord.newFilteredRecord(
+        fields = createSchema.fields().asScala.map(f => (f.name(), f.name())).toMap,
+        ignoreFields = Set.empty[String],
+        keyFields = Map.empty,
+        headerFields = Map.empty
+      )
+
+      combinedRecord.valueSchema().fields().asScala.count(_.name().equals("key_int_field")) shouldBe 0
+      combinedRecord.valueSchema().fields().asScala.count(_.name().equals("header_alias_field_3")) shouldBe 0
+      combinedRecord.valueSchema().fields().asScala.size shouldBe originalRecord.valueSchema().fields().size
+    }
+
+    "select * from value fields for struct" in {
+
+      val originalRecord = getTestRecord
+      val combinedRecord = originalRecord.newFilteredRecord(
+        fields = Map("*" -> "*"),
+        ignoreFields = Set.empty[String],
+        keyFields = Map.empty,
+        headerFields = Map.empty
+      )
+
+      combinedRecord.valueSchema().fields().asScala.size shouldBe originalRecord.valueSchema().fields().size
+
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe(
+        simpleJsonConverter.fromConnectData(originalRecord.valueSchema(), originalRecord.value()).toString
+      )
+    }
+
+    "select * from key fields for struct" in {
+
+      val originalRecord = sinkRecordWithKeyHeaders()
+      val combinedRecord = originalRecord.newFilteredRecord(
+        fields = Map.empty,
+        ignoreFields = Set.empty[String],
+        keyFields = Map("*" -> "*"),
+        headerFields = Map.empty
+      )
+
+      combinedRecord.valueSchema().fields().asScala.size shouldBe originalRecord.valueSchema().fields().size
+
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe(
+        simpleJsonConverter.fromConnectData(originalRecord.keySchema(), originalRecord.key()).toString
+        )
+    }
+
+    "select * from headers fields for struct" in {
+
+      val originalRecord = sinkRecordWithKeyHeaders()
+      val combinedRecord = originalRecord.newFilteredRecord(
+        fields = Map.empty,
+        ignoreFields = Set.empty[String],
+        keyFields = Map.empty,
+        headerFields = Map("*" -> "*")
+      )
+
+      val expected = "{\"header_field_1\":\"foo\",\"header_field_2\":\"bar\",\"header_field_3\":\"boo\"}"
+
+      combinedRecord.valueSchema().fields().asScala.size shouldBe originalRecord.headers().size
+
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
+    }
+
+    "should return empty record for struct" in {
+
+      val originalRecord = sinkRecordWithKeyHeaders()
+      val combinedRecord = originalRecord.newFilteredRecord(
+        fields = Map.empty,
+        ignoreFields = Set.empty[String],
+        keyFields = Map.empty,
+        headerFields = Map.empty
+      )
+
+      combinedRecord.valueSchema().fields().asScala.size shouldBe 0
+    }
+
+    "should retain key and headers for struct" in {
+
+      val originalRecord = sinkRecordWithKeyHeaders()
+      val combinedRecord = originalRecord.newFilteredRecord(
+        fields = Map.empty,
+        ignoreFields = Set.empty[String],
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = true,
+        retainHeaders = true
+      )
+
+      combinedRecord.valueSchema().fields().asScala.size shouldBe 0
+      combinedRecord.keySchema() shouldBe originalRecord.keySchema()
+      combinedRecord.key() shouldBe originalRecord.key()
+      combinedRecord.headers() shouldBe originalRecord.headers()
+    }
+
+    "should ignore fields for struct" in {
+      val originalRecord = getTestRecord
+      val combinedRecord = originalRecord.newFilteredRecord(
+        fields = Map("*" -> "*"),
+        ignoreFields = Set("int_field"),
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = true,
+        retainHeaders = true
+      )
+
+      val expected = "{\"id\":\"sink_test-1-1\",\"long_field\":1,\"string_field\":\"foo\"}"
+
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
+    }
+
+    "should add fields, key fields and headers for schemaless JSON" in {
+      val fields = new util.HashMap[String, Any]()
+      fields.put("field1", "value1")
+      fields.put("field2", 3)
+      fields.put("field3", null)
+
+      val keys = new util.HashMap[String, Any]()
+      keys.put("key_field1", "key_value1")
+      keys.put("key_field2", 3)
+      keys.put("key_field3", null)
+      val record = new SinkRecord("t", 0, null, keys, null, fields, 0)
+
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map("field2" -> "field2_alias"),
+        ignoreFields = Set.empty,
+        keyFields = Map("key_field1" -> "key_field1_alias"),
+        headerFields = Map.empty,
+        retainKey = true,
+        retainHeaders = true
+      )
+
+      val expected = "{\"key_field1_alias\":\"key_value1\",\"field2_alias\":\"3\"}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
+    }
+
+    "should add fields, key fields and headers for JSON with string schema" in {
+
+      val json =
+        """
+          |{
+          |   "field1":"value1",
+          |   "field2":3,
+          |   "field3":""
+          |}
+        """.stripMargin
+
+      val keyJson =
+        """
+          |{
+          |   "key_field1":"value1",
+          |   "key_field2":3,
+          |   "key_field3":""
+          |}
+        """.stripMargin
+
+      val record = new SinkRecord("t", 0, Schema.STRING_SCHEMA, keyJson, Schema.STRING_SCHEMA, json, 0)
+
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map("field1" -> "field1_alias"),
+        ignoreFields = Set.empty,
+        keyFields = Map("key_field1" -> "key_field1_alias"),
+        headerFields = Map.empty,
+        retainKey = true,
+        retainHeaders = true
+      )
+
+      val expected = "{\"key_field1_alias\":\"value1\",\"field1_alias\":\"value1\"}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
+    }
+
+    "should return empty value" in {
+
+      val json =
+        """
+          |{
+          |   "field1":"value1",
+          |   "field2":3,
+          |   "field3":""
+          |}
+        """.stripMargin
+
+      val keyJson =
+        """
+          |{
+          |   "key_field1":"value1",
+          |   "key_field2":3,
+          |   "key_field3":""
+          |}
+        """.stripMargin
+
+      val record = new SinkRecord("t", 0, Schema.STRING_SCHEMA, keyJson, Schema.STRING_SCHEMA, json, 0)
+
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map.empty,
+        ignoreFields = Set.empty,
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = false,
+        retainHeaders = true
+      )
+
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe "{}"
+    }
+
+    "should convert with no headers, no value" in {
+
+      val keyJson =
+        """
+          |{
+          |   "key_field1":"value1",
+          |   "key_field2":3,
+          |   "key_field3":""
+          |}
+        """.stripMargin
+      val record = new SinkRecord("t", 0, Schema.STRING_SCHEMA, keyJson, null, null, 0)
+
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map.empty,
+        ignoreFields = Set.empty,
+        keyFields = Map("key_field1" -> "key_field1_alias"),
+        headerFields = Map("header1" -> "header_alias"),
+        retainKey = false,
+        retainHeaders = true
+      )
+
+      val expected = "{\"key_field1_alias\":\"value1\"}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
   }
 }

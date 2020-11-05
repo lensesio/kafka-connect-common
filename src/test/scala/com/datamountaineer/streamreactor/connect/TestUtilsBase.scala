@@ -25,6 +25,7 @@ import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.SchemaBuilder
 import org.apache.kafka.connect.data.Struct
+import org.apache.kafka.connect.header.ConnectHeaders
 import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.source.SourceTaskContext
 import org.apache.kafka.connect.storage.OffsetStorageReader
@@ -74,6 +75,25 @@ trait TestUtilsBase extends AnyWordSpec with Matchers with BeforeAndAfter with M
       .build
   }
 
+  def createKeySchema: Schema = {
+    SchemaBuilder.struct.name("record")
+      .version(1)
+      .field("key_id", Schema.STRING_SCHEMA)
+      .field("key_int_field", Schema.INT32_SCHEMA)
+      .field("key_long_field", Schema.INT64_SCHEMA)
+      .field("key_string_field", Schema.STRING_SCHEMA)
+      .build
+  }
+
+  //build a test record
+  def createKeyStruct(schema: Schema, id: String): Struct = {
+    new Struct(schema)
+      .put("key_id", id)
+      .put("key_int_field", 1)
+      .put("key_long_field", 1L)
+      .put("key_string_field", "foo")
+  }
+
   //build a test record
   def createRecord(schema: Schema, id: String): Struct = {
     new Struct(schema)
@@ -113,6 +133,28 @@ trait TestUtilsBase extends AnyWordSpec with Matchers with BeforeAndAfter with M
     when(taskContext.offsetStorageReader()).thenReturn(reader)
 
     taskContext
+  }
+
+  def sinkRecordWithKeyHeaders(): SinkRecord = {
+    val baseRecords = getTestRecord
+    val keySchema: Schema = createKeySchema
+    val keyStruct: Struct = createKeyStruct(keySchema, ID)
+    val valueSchema: Schema = createSchema
+    val headers = new ConnectHeaders()
+    headers.addString("header_field_1", "foo")
+    headers.addString("header_field_2", "bar")
+    headers.addString("header_field_3", "boo")
+
+    baseRecords.newRecord(
+      baseRecords.topic(),
+      baseRecords.kafkaPartition(),
+      keySchema,
+      keyStruct,
+      baseRecords.valueSchema(),
+      baseRecords.value(),
+      baseRecords.timestamp(),
+      headers
+    )
   }
 }
 

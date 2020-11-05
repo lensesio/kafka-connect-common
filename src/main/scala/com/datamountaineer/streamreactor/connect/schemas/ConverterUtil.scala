@@ -30,6 +30,7 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import SchemaHelper._
 import StructHelper._
+import org.apache.kafka.connect.errors.ConnectException
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
@@ -37,10 +38,9 @@ import scala.collection.mutable
 import scala.util.Try
 
 /**
- * Created by andrew@datamountaineer.com on 22/02/16.
- * stream-reactor
- */
-
+  * Created by andrew@datamountaineer.com on 22/02/16.
+  * stream-reactor
+  */
 trait ConverterUtil {
   type avroSchema = org.apache.avro.Schema
 
@@ -50,24 +50,28 @@ trait ConverterUtil {
   lazy val avroData = new AvroData(100)
 
   /**
-   * For a schemaless payload when used for a json the connect JsonConverter will provide a Map[_,_] instance as it deserializes
-   * the payload
-   *
-   * @param record       - The connect record to extract the fields from
-   * @param fields       - A map of fields alias
-   * @param ignoreFields - The list of fields to leave out
-   * @param key          - if true it will use record.key to do the transformation; if false will use record.value
-   * @return
-   */
-  def convertSchemalessJson(record: SinkRecord,
-                            fields: Map[String, String],
-                            ignoreFields: Set[String] = Set.empty[String],
-                            key: Boolean = false,
-                            includeAllFields: Boolean = true): java.util.Map[String, Any] = {
-    val value: java.util.Map[String, Any] = (if (key) record.key() else record.value()) match {
-      case s: java.util.Map[_, _] => s.asInstanceOf[java.util.Map[String, Any]]
-      case other => sys.error(s"${other.getClass} is not valid. Expecting a Struct")
-    }
+    * For a schemaless payload when used for a json the connect JsonConverter will provide a Map[_,_] instance as it deserializes
+    * the payload
+    *
+    * @param record       - The connect record to extract the fields from
+    * @param fields       - A map of fields alias
+    * @param ignoreFields - The list of fields to leave out
+    * @param key          - if true it will use record.key to do the transformation; if false will use record.value
+    * @return
+    */
+  def convertSchemalessJson(
+      record: SinkRecord,
+      fields: Map[String, String],
+      ignoreFields: Set[String] = Set.empty[String],
+      key: Boolean = false,
+      includeAllFields: Boolean = true): java.util.Map[String, Any] = {
+    val value: java.util.Map[String, Any] =
+      (if (key) record.key() else record.value()) match {
+        case s: java.util.Map[_, _] =>
+          s.asInstanceOf[java.util.Map[String, Any]]
+        case other =>
+          throw new ConnectException(s"${other.getClass} is not valid. Expecting a Struct")
+      }
 
     ignoreFields.foreach(value.remove)
     if (!includeAllFields) {
@@ -76,72 +80,84 @@ trait ConverterUtil {
 
     fields
       .filter { case (field, alias) => field != alias }
-      .foreach { case (field, alias) =>
-        Option(value.get(field)).foreach { v =>
-          value.remove(field)
-          value.put(alias, v)
-        }
+      .foreach {
+        case (field, alias) =>
+          Option(value.get(field)).foreach { v =>
+            value.remove(field)
+            value.put(alias, v)
+          }
       }
     value
   }
 
   /**
-   * Handles scenarios where the sink record schema is set to string and the payload is json
-   *
-   * @param record              - the sink record instance
-   * @param fields              - fields to include/select
-   * @param ignoreFields        - fields to ignore/remove
-   * @param key                 -if true it targets the sinkrecord key; otherwise it uses the sinkrecord.value
-   * @param includeAllFields    - if false it will remove the fields not present in the fields parameter
-   * @param ignoredFieldsValues - We need to retain the removed fields; in influxdb we might choose to set tags from ignored fields
-   * @return
-   */
-  def convertStringSchemaAndJson(record: SinkRecord,
-                                 fields: Map[String, String],
-                                 ignoreFields: Set[String] = Set.empty[String],
-                                 key: Boolean = false,
-                                 includeAllFields: Boolean = true,
-                                 ignoredFieldsValues: Option[mutable.Map[String, Any]] = None): JValue = {
+    * Handles scenarios where the sink record schema is set to string and the payload is json
+    *
+    * @param record              - the sink record instance
+    * @param fields              - fields to include/select
+    * @param ignoreFields        - fields to ignore/remove
+    * @param key                 -if true it targets the sinkrecord key; otherwise it uses the sinkrecord.value
+    * @param includeAllFields    - if false it will remove the fields not present in the fields parameter
+    * @param ignoredFieldsValues - We need to retain the removed fields; in influxdb we might choose to set tags from ignored fields
+    * @return
+    */
+  def convertStringSchemaAndJson(
+      record: SinkRecord,
+      fields: Map[String, String],
+      ignoreFields: Set[String] = Set.empty[String],
+      key: Boolean = false,
+      includeAllFields: Boolean = true,
+      ignoredFieldsValues: Option[mutable.Map[String, Any]] = None): JValue = {
 
     val schema = if (key) record.keySchema() else record.valueSchema()
-    require(schema != null && schema.`type`() == Schema.STRING_SCHEMA.`type`(), s"$schema is not handled. Expecting Schema.String")
+    require(schema != null && schema.`type`() == Schema.STRING_SCHEMA.`type`(),
+            s"$schema is not handled. Expecting Schema.String")
 
     val jsonValue: String = (if (key) record.key() else record.value()) match {
       case s: String => s
-      case other => sys.error(s"${other.getClass} is not valid. Expecting a Struct")
+      case other =>
+        throw new ConnectException(s"${other.getClass} is not valid. Expecting a String")
     }
 
-    val json = Try(parse(jsonValue)).getOrElse(sys.error(s"Invalid json with the record on topic ${record.topic} and offset ${record.kafkaOffset()}"))
+    val json = Try(parse(jsonValue)).getOrElse(
+      throw new ConnectException(
+        s"Invalid json with the record on topic ${record.topic} and offset ${record
+          .kafkaOffset()}"))
 
-    val withFieldsRemoved = ignoreFields.foldLeft(json) { case (j, ignored) =>
-      j.removeField {
-        case (`ignored`, v) =>
-          ignoredFieldsValues.foreach { map =>
-            val value = v match {
-              case JString(s) => s
-              case JDouble(d) => d
-              case JInt(i) => i
-              case JLong(l) => l
-              case JDecimal(d) => d
-              case other => null
+    val withFieldsRemoved = ignoreFields.foldLeft(json) {
+      case (j, ignored) =>
+        j.removeField {
+          case (`ignored`, v) =>
+            ignoredFieldsValues.foreach { map =>
+              val value = v match {
+                case JString(s)  => s
+                case JDouble(d)  => d
+                case JInt(i)     => i
+                case JLong(l)    => l
+                case JDecimal(d) => d
+                case _           => null
+              }
+              map += ignored -> value
             }
-            map += ignored -> value
-          }
-          true
-        case _ => false
-      }
+            true
+          case _ => false
+        }
     }
 
     val jvalue = if (!includeAllFields) {
-      withFieldsRemoved.removeField { case (field, _) => !fields.contains(field) }
+      withFieldsRemoved.removeField {
+        case (field, _) => !fields.contains(field)
+      }
     } else withFieldsRemoved
 
-    fields.filter { case (field, alias) => field != alias }
-      .foldLeft(jvalue) { case (j, (field, alias)) =>
-        j.transformField {
-          case JField(`field`, v) => (alias, v)
-          case other: JField => other
-        }
+    fields
+      .filter { case (field, alias) => field != alias }
+      .foldLeft(jvalue) {
+        case (j, (field, alias)) =>
+          j.transformField {
+            case JField(`field`, v) => (alias, v)
+            case other: JField      => other
+          }
       }
   }
 
@@ -159,98 +175,85 @@ trait ConverterUtil {
               ignoreFields: Set[String] = Set.empty[String],
               key: Boolean = false): SinkRecord = {
 
-    val value: Struct = (if (key) record.key() else record.value()) match {
-      case s: Struct => s
-      case other => sys.error(s"${other.getClass} is not valid. Expecting a Struct")
-    }
-
-    if ((fields.isEmpty && ignoreFields.isEmpty) || (ignoreFields.isEmpty && fields.head._1.equals("*"))) {
+    if ((fields.isEmpty && ignoreFields.isEmpty) || (ignoreFields.isEmpty && fields.contains("*"))) {
       record
     } else {
-      val currentSchema = if (key) record.keySchema() else record.valueSchema()
-      val builder: SchemaBuilder = SchemaBuilder.struct.name(record.topic() + "_extracted")
+      val struct = if (key) record.key() else record.value()
+      val schema = if (key) record.keySchema() else record.valueSchema()
 
-      //build a new schema for the fields
-      if (fields.nonEmpty) {
-        fields.foreach { case (name, alias) =>
-          currentSchema.extractSchema(name) match {
-            case Left(value) => throw new RuntimeException(value.msg)
-            case Right(value) => builder.field(alias, value)
-          }
-        }
-      } else if (ignoreFields.nonEmpty) {
-        val ignored = currentSchema.fields().asScala.filterNot(f => ignoreFields.contains(f.name()))
-        ignored.foreach(i => builder.field(i.name, i.schema))
-      } else {
-        currentSchema.fields().asScala.foreach(f => builder.field(f.name(), f.schema()))
+     struct match {
+        case s: Struct =>
+          // apply ignore only on value
+          val newStruct = s.reduceToSchema(schema, fields, if (!key) ignoreFields else Set.empty)
+          new SinkRecord(record.topic(), record.kafkaPartition(), Schema.STRING_SCHEMA, "key", newStruct.schema(), newStruct,
+            record.kafkaOffset(), record.timestamp(), record.timestampType())
+
+        case other =>
+          new ConnectException(
+            s"${other.getClass} is not valid. Expecting a Struct.")
+         record
       }
-
-      val extractedSchema = builder.build()
-      val newStruct = new Struct(extractedSchema)
-      fields.foreach { case (name, alias) =>
-        value.extractValueFromPath(name) match {
-          case Left(value) => throw new RuntimeException(value.msg)
-          case Right(value) => newStruct.put(alias, value.orNull)
-        }
-      }
-
-      new SinkRecord(record.topic(), record.kafkaPartition(), Schema.STRING_SCHEMA, "key", extractedSchema, newStruct,
-        record.kafkaOffset(), record.timestamp(), record.timestampType())
     }
   }
 
   /**
-   * Convert a ConnectRecord value to a Json string using Kafka Connects deserializer
-   *
-   * @param record A ConnectRecord to extract the payload value from
-   * @return A json string for the payload of the record
-   * */
-  def convertValueToJson[T <: ConnectRecord[T]](record: ConnectRecord[T]): JsonNode = {
+    * Convert a ConnectRecord value to a Json string using Kafka Connects deserializer
+    *
+    * @param record A ConnectRecord to extract the payload value from
+    * @return A json string for the payload of the record
+    * */
+  def convertValueToJson[T <: ConnectRecord[T]](
+      record: ConnectRecord[T]): JsonNode = {
     simpleJsonConverter.fromConnectData(record.valueSchema(), record.value())
   }
 
   /**
-   * Convert a ConnectRecord key to a Json string using Kafka Connects deserializer
-   *
-   * @param record A ConnectRecord to extract the payload value from
-   * @return A json string for the payload of the record
-   * */
-  def convertKeyToJson[T <: ConnectRecord[T]](record: ConnectRecord[T]): JsonNode = {
+    * Convert a ConnectRecord key to a Json string using Kafka Connects deserializer
+    *
+    * @param record A ConnectRecord to extract the payload value from
+    * @return A json string for the payload of the record
+    * */
+  def convertKeyToJson[T <: ConnectRecord[T]](
+      record: ConnectRecord[T]): JsonNode = {
     simpleJsonConverter.fromConnectData(record.keySchema(), record.key())
   }
 
   /**
-   * Deserialize Byte array for a topic to json
-   *
-   * @param topic   Topic name for the byte array
-   * @param payload Byte Array payload
-   * @return A JsonNode representing the byte array
-   * */
+    * Deserialize Byte array for a topic to json
+    *
+    * @param topic   Topic name for the byte array
+    * @param payload Byte Array payload
+    * @return A JsonNode representing the byte array
+    * */
   def deserializeToJson(topic: String, payload: Array[Byte]): JsonNode = {
     val json = deserializer.deserialize(topic, payload).get("payload")
     json
   }
 
   /**
-   * Configure the converter
-   *
-   * @param converter The Converter to configure
-   * @param props     The props to configure with
-   * */
-  def configureConverter(converter: Converter, props: HashMap[String, String] = new HashMap[String, String]) = {
+    * Configure the converter
+    *
+    * @param converter The Converter to configure
+    * @param props     The props to configure with
+    * */
+  def configureConverter(converter: Converter,
+                         props: HashMap[String, String] =
+                           new HashMap[String, String]): Unit = {
     converter.configure(props.asJava, false)
   }
 
   /**
-   * Convert SinkRecord to GenericRecord
-   *
-   * @param record ConnectRecord to convert
-   * @return a GenericRecord
-   * */
-  def convertValueToGenericAvro[T <: ConnectRecord[T]](record: ConnectRecord[T]): GenericRecord = {
+    * Convert SinkRecord to GenericRecord
+    *
+    * @param record ConnectRecord to convert
+    * @return a GenericRecord
+    * */
+  def convertValueToGenericAvro[T <: ConnectRecord[T]](
+      record: ConnectRecord[T]): GenericRecord = {
     val avro = avroData.fromConnectData(record.valueSchema(), record.value())
     avro.asInstanceOf[GenericRecord]
   }
 
-  def convertAvroToConnect(topic: String, obj: Array[Byte]): SchemaAndValue = avroConverter.toConnectData(topic, obj)
+  def convertAvroToConnect(topic: String, obj: Array[Byte]): SchemaAndValue =
+    avroConverter.toConnectData(topic, obj)
 }
