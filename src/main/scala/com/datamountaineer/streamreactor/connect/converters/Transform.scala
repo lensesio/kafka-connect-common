@@ -78,7 +78,8 @@ object Transform extends StrictLogging {
           case Schema.Type.STRUCT =>
             val struct = value.asInstanceOf[Struct]
             Try(struct.sql(fields, !withStructure)) match {
-              case Success(s) => simpleJsonConverter.fromConnectData(s.schema(), s).toString
+              case Success(s) =>
+                simpleJsonConverter.fromConnectData(s.schema(), s).toString
 
               case Failure(e) => raiseException(s"A KCQL error occurred.${e.getMessage}", e)
             }
