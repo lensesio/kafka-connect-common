@@ -45,7 +45,7 @@ trait KcqlSettings extends BaseSettings {
 
   def getFieldsMap(kcql: Set[Kcql] = getKCQL): Map[String, Map[String, String]] = {
     kcql.toList.map(rm =>
-      (rm.getSource, rm.getFields.asScala.map(fa => (fa.getName, fa.getAlias)).toMap)
+      (rm.getSource, rm.getFields.asScala.map(fa => (fa.toString, fa.getAlias)).toMap)
     ).toMap
   }
 
