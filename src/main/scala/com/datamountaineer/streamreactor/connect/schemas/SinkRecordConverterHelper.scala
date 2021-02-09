@@ -1,25 +1,15 @@
 package com.datamountaineer.streamreactor.connect.schemas
 
-import com.datamountaineer.streamreactor.connect.converters.sink.SinkRecordToJson.{
-  connectSchemaTypeToSchema,
-  convertFromStringAsJson
-}
 import com.datamountaineer.streamreactor.connect.converters.source.JsonSimpleConverter
 import com.datamountaineer.streamreactor.connect.schemas.StructHelper.StructExtension
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.typesafe.scalalogging.StrictLogging
-import org.apache.kafka.connect.data.{
-  ConnectSchema,
-  Schema,
-  SchemaBuilder,
-  Struct
-}
+import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.apache.kafka.connect.errors.ConnectException
 import org.apache.kafka.connect.header.ConnectHeaders
 import org.apache.kafka.connect.sink.SinkRecord
 
 import scala.collection.JavaConverters._
-import scala.collection.convert.ImplicitConversions.`map AsScala`
 import scala.util.{Failure, Success, Try}
 
 object SinkRecordConverterHelper extends StrictLogging {
