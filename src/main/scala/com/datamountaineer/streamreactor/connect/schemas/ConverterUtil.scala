@@ -28,14 +28,13 @@ import org.apache.kafka.connect.sink.SinkRecord
 import org.apache.kafka.connect.storage.Converter
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
-import SchemaHelper._
 import StructHelper._
 import org.apache.kafka.connect.errors.ConnectException
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by andrew@datamountaineer.com on 22/02/16.
@@ -48,6 +47,37 @@ trait ConverterUtil {
   lazy val deserializer = new JsonDeserializer()
   lazy val avroConverter = new AvroConverter()
   lazy val avroData = new AvroData(100)
+
+  //for converting json to
+  def connectSchemaTypeToSchema(schemaType: Schema.Type, value: Any): Schema = {
+    schemaType match {
+      case Schema.Type.INT8           => Schema.OPTIONAL_INT8_SCHEMA
+      case Schema.Type.INT16          => Schema.OPTIONAL_INT16_SCHEMA
+      case Schema.Type.INT32          => Schema.OPTIONAL_INT32_SCHEMA
+      case Schema.Type.INT64          => Schema.OPTIONAL_INT64_SCHEMA
+      case Schema.Type.FLOAT32        => Schema.OPTIONAL_FLOAT32_SCHEMA
+      case Schema.Type.FLOAT64        => Schema.OPTIONAL_FLOAT64_SCHEMA
+      case Schema.Type.BOOLEAN        => Schema.OPTIONAL_BOOLEAN_SCHEMA
+      case Schema.Type.STRING         => Schema.OPTIONAL_STRING_SCHEMA
+      case Schema.Type.BYTES          => Schema.OPTIONAL_BYTES_SCHEMA
+      case Schema.Type.STRUCT         => value.asInstanceOf[Struct].schema()
+      case Schema.Type.ARRAY =>
+        val first = value.asInstanceOf[java.util.List[Any]].asScala
+        if (first.nonEmpty) {
+          val schemaType = connectSchemaTypeToSchema(ConnectSchema.schemaType(first.head.getClass), first.head)
+          SchemaBuilder.array(schemaType).build()
+        } else {
+          SchemaBuilder.array(Schema.STRING_SCHEMA).build()
+        }
+
+
+      case Schema.Type.MAP =>
+        val first = value.asInstanceOf[Map[Any, Any]].head
+        val keySchema = connectSchemaTypeToSchema(ConnectSchema.schemaType(first._1.getClass), first._1)
+        val valueSchema = connectSchemaTypeToSchema(ConnectSchema.schemaType(first._2.getClass), first._2)
+        SchemaBuilder.map(keySchema, valueSchema).build()
+    }
+  }
 
   /**
     * For a schemaless payload when used for a json the connect JsonConverter will provide a Map[_,_] instance as it deserializes
@@ -70,7 +100,8 @@ trait ConverterUtil {
         case s: java.util.Map[_, _] =>
           s.asInstanceOf[java.util.Map[String, Any]]
         case other =>
-          throw new ConnectException(s"${other.getClass} is not valid. Expecting a Struct")
+          throw new ConnectException(
+            s"${other.getClass} is not valid. Expecting a Struct")
       }
 
     ignoreFields.foreach(value.remove)
@@ -101,97 +132,101 @@ trait ConverterUtil {
     * @param ignoredFieldsValues - We need to retain the removed fields; in influxdb we might choose to set tags from ignored fields
     * @return
     */
-  def convertStringSchemaAndJson(
-      record: SinkRecord,
-      fields: Map[String, String],
-      ignoreFields: Set[String] = Set.empty[String],
-      key: Boolean = false,
-      includeAllFields: Boolean = true,
-      ignoredFieldsValues: Option[mutable.Map[String, Any]] = None): JValue = {
+  def convertFromStringAsJson(record: SinkRecord,
+                              fields: Map[String, String],
+                              ignoreFields: Set[String] = Set.empty[String],
+                              key: Boolean = false,
+                              includeAllFields: Boolean = true,
+                              ignoredFieldsValues: Option[mutable.Map[String, Any]] = None): Either[String, ConversionResult] = {
 
     val schema = if (key) record.keySchema() else record.valueSchema()
-    require(schema != null && schema.`type`() == Schema.STRING_SCHEMA.`type`(),
-            s"$schema is not handled. Expecting Schema.String")
-
-    val jsonValue: String = (if (key) record.key() else record.value()) match {
-      case s: String => s
-      case other =>
-        throw new ConnectException(s"${other.getClass} is not valid. Expecting a String")
-    }
-
-    val json = Try(parse(jsonValue)).getOrElse(
-      throw new ConnectException(
-        s"Invalid json with the record on topic ${record.topic} and offset ${record
-          .kafkaOffset()}"))
-
-    val withFieldsRemoved = ignoreFields.foldLeft(json) {
-      case (j, ignored) =>
-        j.removeField {
-          case (`ignored`, v) =>
-            ignoredFieldsValues.foreach { map =>
-              val value = v match {
-                case JString(s)  => s
-                case JDouble(d)  => d
-                case JInt(i)     => i
-                case JLong(l)    => l
-                case JDecimal(d) => d
-                case _           => null
+    val expectedInput = schema != null && schema.`type`() == Schema.STRING_SCHEMA.`type`()
+    if (!expectedInput) Left(s"$schema is not handled. Expecting Schema.String")
+    else {
+      (if (key) record.key() else record.value()) match {
+        case s: String =>
+          Try(parse(s)) match {
+            case Success(json) =>
+              val withFieldsRemoved = ignoreFields.foldLeft(json) { case (j, ignored) =>
+                j.removeField {
+                  case (`ignored`, v) =>
+                    ignoredFieldsValues.foreach { map =>
+                      val value = v match {
+                        case JString(s) => s
+                        case JDouble(d) => d
+                        case JInt(i) => i
+                        case JLong(l) => l
+                        case JDecimal(d) => d
+                        case _ => null
+                      }
+                      map += ignored -> value
+                    }
+                    true
+                  case _ => false
+                }
               }
-              map += ignored -> value
-            }
-            true
-          case _ => false
-        }
-    }
 
-    val jvalue = if (!includeAllFields) {
-      withFieldsRemoved.removeField {
-        case (field, _) => !fields.contains(field)
-      }
-    } else withFieldsRemoved
-
-    fields
-      .filter { case (field, alias) => field != alias }
-      .foldLeft(jvalue) {
-        case (j, (field, alias)) =>
-          j.transformField {
-            case JField(`field`, v) => (alias, v)
-            case other: JField      => other
+              val converted = fields.filter { case (field, alias) => field != alias }
+                .foldLeft(withFieldsRemoved) { case (j, (field, alias)) =>
+                  j.transformField {
+                    case JField(`field`, v) => (alias, v)
+                    case other: JField => other
+                  }
+                }
+              Right(ConversionResult(json, converted))
+            case Failure(_) => Left(s"Invalid json with the record on topic ${record.topic} and offset ${record.kafkaOffset()}")
           }
+        case other => Left(s"${other.getClass} is not valid. Expecting a Struct")
       }
+    }
   }
 
+  case class ConversionResult(original: JValue, converted: JValue)
+
   /**
-   * Create a Struct based on a set of fields to extract from a ConnectRecord
-   *
-   * @param record       The connectRecord to extract the fields from.
-   * @param fields       The fields to extract.
-   * @param ignoreFields Fields to ignore from the sink records.
-   * @param key          Extract the fields from the key or the value of the ConnectRecord.
-   * @return A new Struct with the fields specified in the fieldsMappings.
-   * */
+    * Create a Struct based on a set of fields to extract from a ConnectRecord
+    *
+    * @param record       The connectRecord to extract the fields from.
+    * @param fields       The fields to extract.
+    * @param ignoreFields Fields to ignore from the sink records.
+    * @param key          Extract the fields from the key or the value of the ConnectRecord.
+    * @return A new Struct with the fields specified in the fieldsMappings.
+    * */
   def convert(record: SinkRecord,
               fields: Map[String, String],
               ignoreFields: Set[String] = Set.empty[String],
               key: Boolean = false): SinkRecord = {
 
-    if ((fields.isEmpty && ignoreFields.isEmpty) || (ignoreFields.isEmpty && fields.contains("*"))) {
+    if ((fields.isEmpty && ignoreFields.isEmpty) || (ignoreFields.isEmpty && fields
+          .contains("*"))) {
       record
     } else {
       val struct = if (key) record.key() else record.value()
       val schema = if (key) record.keySchema() else record.valueSchema()
 
-     struct match {
+      struct match {
         case s: Struct =>
           // apply ignore only on value
-          val newStruct = s.reduceToSchema(schema, fields, if (!key) ignoreFields else Set.empty)
-          new SinkRecord(record.topic(), record.kafkaPartition(), Schema.STRING_SCHEMA, "key", newStruct.schema(), newStruct,
-            record.kafkaOffset(), record.timestamp(), record.timestampType())
+          val newStruct = s.reduceSchema(
+            schema,
+            fields,
+            if (!key) ignoreFields else Set.empty)
+          new SinkRecord(
+            record.topic(),
+            record.kafkaPartition(),
+            Schema.STRING_SCHEMA,
+            "key",
+            newStruct.schema(),
+            newStruct,
+            record.kafkaOffset(),
+            record.timestamp(),
+            record.timestampType()
+          )
 
         case other =>
           new ConnectException(
             s"${other.getClass} is not valid. Expecting a Struct.")
-         record
+          record
       }
     }
   }

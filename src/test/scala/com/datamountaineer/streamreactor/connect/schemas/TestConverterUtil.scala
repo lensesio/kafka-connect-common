@@ -17,11 +17,11 @@
 package com.datamountaineer.streamreactor.connect.schemas
 
 import java.util
-
 import com.datamountaineer.streamreactor.connect.TestUtilsBase
 import com.datamountaineer.streamreactor.connect.schemas.SinkRecordConverterHelper.SinkRecordExtension
 import io.confluent.connect.avro.AvroData
 import org.apache.kafka.connect.data.{Schema, Struct}
+import org.apache.kafka.connect.header.ConnectHeaders
 import org.apache.kafka.connect.json.JsonConverter
 import org.apache.kafka.connect.sink.SinkRecord
 import org.json4s.jackson.JsonMethods._
@@ -96,7 +96,14 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
     "throw an error while converting schemaless record if the payload is not Map[String, Any]" in {
       intercept[RuntimeException] {
         val record = new SinkRecord("t", 0, null, null, null, "Should not be here", 0)
-        convertSchemalessJson(record, Map.empty)
+        record.newFilteredRecord(
+          fields = Map("*" -> "*"),
+          ignoreFields =  Set.empty,
+          keyFields = Map.empty,
+          headerFields = Map.empty,
+          retainKey = false,
+          retainHeaders = false
+        )
       }
     }
 
@@ -105,8 +112,19 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
       map.put("field1", "value1")
       map.put("field2", 3)
       map.put("toremove", null)
+
       val record = new SinkRecord("t", 0, null, null, null, map, 0)
-      convertSchemalessJson(record, Map.empty, Set("toremove")).asScala shouldBe Map("field1" -> "value1", "field2" -> 3)
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map("*" -> "*"),
+        ignoreFields =  Set("toremove"),
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = false,
+        retainHeaders = false
+      )
+
+      val expected = "{\"field1\":\"value1\",\"field2\":3}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
 
@@ -116,9 +134,18 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
       map.put("field2", 3)
       map.put("field3", null)
       val record = new SinkRecord("t", 0, null, null, null, map, 0)
-      convertSchemalessJson(record, Map("field1" -> "field1", "field2" -> "fieldRenamed"), Set.empty, includeAllFields = false).asScala shouldBe Map(
-        "field1" -> "value1", "fieldRenamed" -> 3
+
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map("field1" -> "field1", "field2" -> "fieldRenamed"),
+        ignoreFields =  Set.empty,
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = false,
+        retainHeaders = false
       )
+
+      val expected = "{\"field1\":\"value1\",\"fieldRenamed\":3}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
 
@@ -128,9 +155,18 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
       map.put("field2", 3)
       map.put("field3", null)
       val record = new SinkRecord("t", 0, null, null, null, map, 0)
-      convertSchemalessJson(record, Map("field1" -> "field1", "field2" -> "fieldRenamed"), Set("toremove")).asScala shouldBe Map(
-        "field1" -> "value1", "fieldRenamed" -> 3, "field3" -> null
+
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map("field1" -> "field1", "field2" -> "fieldRenamed", "field3" -> "field3"),
+        ignoreFields =  Set("toremove"),
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = false,
+        retainHeaders = false
       )
+
+      val expected = "{\"field1\":\"value1\",\"fieldRenamed\":3,\"field3\":null}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
     "convert a json via JsonConverter and then apply a field alias and one remove " in {
@@ -150,17 +186,33 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
       val map = schemaAndValue.value().asInstanceOf[java.util.Map[String, Any]].asScala
       map shouldBe Map("id" -> 1, "name" -> "A green door", "price" -> 12.5, "tags" -> List("home", "green").asJava)
 
-      val result = convertSchemalessJson(new SinkRecord("topicA", 0, null, null, null, schemaAndValue.value, 0),
-        Map("id" -> "id", "tags" -> "tagsRenamed"), Set("price"), includeAllFields = false).asScala
+      val record = new SinkRecord("topicA", 0, null, null, null, schemaAndValue.value, 0)
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map("id" -> "id", "tags" -> "tagsRenamed"),
+        ignoreFields =  Set("price"),
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = false,
+        retainHeaders = false
+      )
 
-      result shouldBe Map("id" -> 1, "tagsRenamed" -> List("home", "green").asJava)
+      val expected = "{\"id\":1,\"tagsRenamed\":[\"home\",\"green\"]}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
 
     "throw an error while converting a json payload" in {
       intercept[RuntimeException] {
         val record = new SinkRecord("t", 0, null, null, null, Map.empty[String, String], 0)
-        convertSchemalessJson(record, Map.empty)
+        record.newFilteredRecord(
+          fields = Map("id" -> "id", "tags" -> "tagsRenamed"),
+          ignoreFields =  Set("price"),
+          keyFields = Map.empty,
+          headerFields = Map.empty,
+          retainKey = false,
+          retainHeaders = false
+        )
+
       }
     }
 
@@ -175,9 +227,18 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
         """.stripMargin
 
       val record = new SinkRecord("t", 0, null, null, Schema.STRING_SCHEMA, json, 0)
-      val actual = compact(render(convertStringSchemaAndJson(record, Map.empty, Set("toremove"))))
 
-      actual shouldBe "{\"field1\":\"value1\",\"field2\":3}"
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map("*" -> "*"),
+        ignoreFields =  Set("toremove"),
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = false,
+        retainHeaders = false
+      )
+
+      val expected = "{\"field1\":\"value1\",\"field2\":3}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
 
@@ -193,10 +254,17 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
 
       val record = new SinkRecord("t", 0, null, null, Schema.STRING_SCHEMA, json, 0)
 
-      val actual = compact(render(convertStringSchemaAndJson(record, Map("field1" -> "field1", "field2" -> "fieldRenamed"), Set.empty, includeAllFields = false)))
-      val expected ="{\"field1\":\"value1\",\"fieldRenamed\":3}"
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map("field1" -> "field1", "field2" -> "fieldRenamed"),
+        ignoreFields = Set.empty,
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = false,
+        retainHeaders = false
+      )
 
-      actual shouldBe expected
+      val expected ="{\"field1\":\"value1\",\"fieldRenamed\":3}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
 
@@ -211,9 +279,18 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
         """.stripMargin
 
       val record = new SinkRecord("t", 0, null, null, Schema.STRING_SCHEMA, json, 0)
-      val actual = compact(render(convertStringSchemaAndJson(record, Map("field1" -> "field1", "field2" -> "fieldRenamed"), Set("toremove"))))
-      val expected ="{\"field1\":\"value1\",\"fieldRenamed\":3,\"field3\":\"\"}"
-      actual shouldBe expected
+
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map("field1" -> "field1", "field2" -> "fieldRenamed"),
+        ignoreFields = Set("toremove"),
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = false,
+        retainHeaders = false
+      )
+
+      val expected ="{\"field1\":\"value1\",\"fieldRenamed\":3}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
     "apply a field alias and one remove when converting a sink record with Schema.String and the payload a json" in {
@@ -227,13 +304,19 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
           |}
         """.stripMargin
 
-      val actual = compact(render(convertStringSchemaAndJson(new SinkRecord("topicA", 0, null, null, Schema.STRING_SCHEMA, json, 0),
-        Map("id" -> "id", "tags" -> "tagsRenamed"), Set("price"), includeAllFields = false)))
+      val record = new SinkRecord("topicA", 0, null, null, Schema.STRING_SCHEMA, json, 0)
+      val combinedRecord = record.newFilteredRecord(
+        fields = Map("id" -> "id", "tags" -> "tagsRenamed"),
+        ignoreFields = Set("price"),
+        keyFields = Map.empty,
+        headerFields = Map.empty,
+        retainKey = false,
+        retainHeaders = false
+      )
 
       val expected ="{\"id\":1,\"tagsRenamed\":[\"home\",\"green\"]}"
-      actual shouldBe expected
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
-
 
     "add key fields and headers to record for Struct" in {
       val originalRecord = sinkRecordWithKeyHeaders()
@@ -250,7 +333,7 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
       combinedRecord.valueSchema().fields().asScala.count(_.name().equals("header_alias_field_3")) shouldBe 1
       combinedRecord.valueSchema().fields().asScala.size shouldBe 3
 
-      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
+       simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
 
       //not retain key or headers
       combinedRecord.keySchema() shouldBe null
@@ -285,7 +368,6 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
       )
 
       combinedRecord.valueSchema().fields().asScala.size shouldBe originalRecord.valueSchema().fields().size
-
       simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe(
         simpleJsonConverter.fromConnectData(originalRecord.valueSchema(), originalRecord.value()).toString
       )
@@ -302,7 +384,6 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
       )
 
       combinedRecord.valueSchema().fields().asScala.size shouldBe originalRecord.valueSchema().fields().size
-
       simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe(
         simpleJsonConverter.fromConnectData(originalRecord.keySchema(), originalRecord.key()).toString
         )
@@ -319,10 +400,23 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
       )
 
       val expected = "{\"header_field_1\":\"foo\",\"header_field_2\":\"bar\",\"header_field_3\":\"boo\"}"
-
       combinedRecord.valueSchema().fields().asScala.size shouldBe originalRecord.headers().size
-
       simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
+    }
+
+    "select some fields from headers for struct" in {
+
+      val originalRecord = sinkRecordWithKeyHeaders()
+      val combinedRecord = originalRecord.newFilteredRecord(
+        fields = Map.empty,
+        ignoreFields = Set.empty[String],
+        keyFields = Map.empty,
+        headerFields = Map("header_field_1" -> "my_header_alias")
+      )
+
+      val expected = "{\"my_header_alias\":\"foo\"}"
+      combinedRecord.valueSchema().fields().asScala.size shouldBe 1
+       simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
     "should return empty record for struct" in {
@@ -368,32 +462,42 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
       )
 
       val expected = "{\"id\":\"sink_test-1-1\",\"long_field\":1,\"string_field\":\"foo\"}"
-
-      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
+       simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
     "should add fields, key fields and headers for schemaless JSON" in {
       val fields = new util.HashMap[String, Any]()
       fields.put("field1", "value1")
       fields.put("field2", 3)
-      fields.put("field3", null)
+      fields.put("field3", null) // null so ignored
+      fields.put("field4", true)
+      fields.put("field5", 1.1)
+      fields.put("field6", List(1, 2, 3).asJava)
 
       val keys = new util.HashMap[String, Any]()
       keys.put("key_field1", "key_value1")
       keys.put("key_field2", 3)
       keys.put("key_field3", null)
-      val record = new SinkRecord("t", 0, null, keys, null, fields, 0)
+
+      val headers = new ConnectHeaders()
+      headers.addBoolean("header_boolean", true)
+      headers.addInt("header_int", 1)
+      headers.addString("header_string", "header_string_value")
+      headers.addFloat("header_float", 1.1f)
+      headers.addDecimal("header_decimal", new java.math.BigDecimal("2.1"))
+
+      val record = new SinkRecord("t", 0, null, keys, null, fields, 0, null, null, headers)
 
       val combinedRecord = record.newFilteredRecord(
-        fields = Map("field2" -> "field2_alias"),
+        fields = Map("field2" -> "field2_alias", "field3" -> "field3", "field4" -> "field4", "field5" -> "field5", "field6" -> "field6"),
         ignoreFields = Set.empty,
         keyFields = Map("key_field1" -> "key_field1_alias"),
-        headerFields = Map.empty,
+        headerFields = Map("*" -> "*"),
         retainKey = true,
         retainHeaders = true
       )
 
-      val expected = "{\"key_field1_alias\":\"key_value1\",\"field2_alias\":\"3\"}"
+      val expected = "{\"key_field1_alias\":\"key_value1\",\"field5\":1.1,\"field4\":true,\"field3\":null,\"field2_alias\":3,\"field6\":[1,2,3],\"header_boolean\":true,\"header_int\":1,\"header_string\":\"header_string_value\",\"header_float\":1.1,\"header_decimal\":2.1}"
       simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
@@ -463,10 +567,11 @@ class TestConverterUtil extends TestUtilsBase with ConverterUtil {
         retainHeaders = true
       )
 
-      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe "{}"
+      val expected = "{}"
+      simpleJsonConverter.fromConnectData(combinedRecord.valueSchema(), combinedRecord.value()).toString shouldBe expected
     }
 
-    "should convert with no headers, no value" in {
+    "should convert key with no headers, no value" in {
 
       val keyJson =
         """

@@ -1,13 +1,18 @@
 package com.datamountaineer.streamreactor.connect.schemas
 
 import com.datamountaineer.streamreactor.connect.schemas.SchemaHelper.SchemaExtensions
+import com.typesafe.scalalogging.{Logger, StrictLogging}
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
 object StructHelper {
 
-  implicit final class StructExtension(val struct: Struct) extends AnyVal {
+  implicit final class StructExtension(val struct: Struct) extends {
+
+    val logger = Logger(LoggerFactory.getLogger(getClass.getName))
+
     def extractValueFromPath(
         path: String): Either[FieldValueExtractionError, Option[AnyRef]] = {
       val fields = path.split('.')
@@ -76,9 +81,9 @@ object StructHelper {
       output
     }
 
-    def reduceToSchema(schema: Schema,
-                       fields: Map[String, String],
-                       ignoreFields: Set[String]): Struct = {
+    def reduceSchema(schema: Schema,
+                     fields: Map[String, String],
+                     ignoreFields: Set[String]): Struct = {
 
       val allFields = fields.contains("*")
 
@@ -109,7 +114,7 @@ object StructHelper {
         .foreach {
           case (name, alias) =>
             oldStruct.extractValueFromPath(name) match {
-              case Left(value)  => throw new RuntimeException(value.msg)
+              case Left(value)  => logger.error(value.msg)
               case Right(value) => newStruct.put(alias, value.orNull)
             }
         }
@@ -122,7 +127,7 @@ object StructHelper {
         .foreach {
           case (name, alias) =>
             schema.extractSchema(name) match {
-              case Left(value)  => throw new RuntimeException(value.msg)
+              case Left(value)  => logger.error(value.msg)
               case Right(value) => builder.field(alias, value)
             }
         }

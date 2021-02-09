@@ -227,6 +227,7 @@ public class SimpleJsonConverter {
   }
 
 
+
   private interface JsonToConnectTypeConverter {
     Object convert(Schema schema, JsonNode value);
   }

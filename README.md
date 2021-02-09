@@ -1,6 +1,5 @@
 ![Actions Status](https://github.com/Landoop/kafka-connect-common/workflows/CI/badge.svg)
-[<img 
-src="https://img.shields.io/badge/latest%20release-v02.0.6-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
+[<img src="https://img.shields.io/badge/latest%20release-v02.0.6-blue.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.datamountaineer%22%20AND%20a%3A%22kafka-connect-common%22)
 Kafka Connect Common is in Maven, include it in your connector.
 
 
@@ -9,6 +8,7 @@ Kafka Connect Common is in Maven, include it in your connector.
 
 | Version | Confluent Version |Kafka| Kcql Version | Scala Version |
 | ------- | ----------------- |-----|--------------|---------------|
+|2.0.6|5.4.0|2.4.0|2.8.8|2.12
 |2.0.5|5.4.0|2.4.0|2.8.8|2.12
 |2.0.5|5.4.0|2.4.0|2.8.7|2.12
 |2.0.4|5.4.0|2.4.0|2.8.7|2.12

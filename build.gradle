@@ -60,7 +60,7 @@ allprojects {
         avro4sVersion = "1.6.4"
         guavaVersion = "18.0"
         json4sVersion = "3.6.7"
-        kcqlVersion =  "2.8.7"
+        kcqlVersion =  "2.8.8"
         smt = "2.0.0"
     }
 

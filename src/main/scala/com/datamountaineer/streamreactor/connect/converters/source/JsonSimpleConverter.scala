@@ -80,15 +80,15 @@ object JsonSimpleConverter {
 
         val schema = SchemaBuilder.array(sv.schema()).optional().build()
         new SchemaAndValue(schema, values)
-      case JBool(b) => new SchemaAndValue(Schema.BOOLEAN_SCHEMA, b)
+      case JBool(b) => new SchemaAndValue(Schema.OPTIONAL_BOOLEAN_SCHEMA, b)
       case JDecimal(d) =>
         val schema = Decimal.builder(d.scale).optional().build()
         new SchemaAndValue(schema, Decimal.fromLogical(schema, d.bigDecimal))
-      case JDouble(d) => new SchemaAndValue(Schema.FLOAT64_SCHEMA, d)
-      case JInt(i) => new SchemaAndValue(Schema.INT64_SCHEMA, i.toLong) //on purpose! LONG (we might get later records with long entries)
-      case JLong(l) => new SchemaAndValue(Schema.INT64_SCHEMA, l)
-      case JNull | JNothing => new SchemaAndValue(Schema.STRING_SCHEMA, null)
-      case JString(s) => new SchemaAndValue(Schema.STRING_SCHEMA, s)
+      case JDouble(d) => new SchemaAndValue(Schema.OPTIONAL_FLOAT64_SCHEMA, d)
+      case JInt(i) => new SchemaAndValue(Schema.OPTIONAL_INT64_SCHEMA, i.toLong) //on purpose! LONG (we might get later records with long entries)
+      case JLong(l) => new SchemaAndValue(Schema.OPTIONAL_INT64_SCHEMA, l)
+      case JNull | JNothing => new SchemaAndValue(Schema.OPTIONAL_STRING_SCHEMA, null)
+      case JString(s) => new SchemaAndValue(Schema.OPTIONAL_STRING_SCHEMA, s)
       case JObject(values) =>
         val builder = SchemaBuilder.struct().name(name.replace("/", "_"))
 
