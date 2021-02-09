@@ -1,7 +1,7 @@
 package com.datamountaineer.streamreactor.connect.schemas
 
 import com.datamountaineer.streamreactor.connect.schemas.SchemaHelper.SchemaExtensions
-import com.typesafe.scalalogging.{Logger, StrictLogging}
+import com.typesafe.scalalogging.Logger
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.slf4j.LoggerFactory
 
