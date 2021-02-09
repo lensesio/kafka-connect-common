@@ -17,18 +17,16 @@
 package com.datamountaineer.streamreactor.connect.converters.source
 
 import java.util.Collections
-
 import com.datamountaineer.streamreactor.connect.converters.MsgKey
-import com.sksamuel.avro4s.{RecordFormat, SchemaFor}
-import io.confluent.connect.avro.AvroData
-import org.apache.avro.Schema
+import org.apache.kafka.connect.data.Struct
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+
+import scala.jdk.CollectionConverters.asScalaBufferConverter
 
 class JsonSimpleConverterTest extends AnyWordSpec with Matchers {
   val topic = "the_real_topic"
   val sourceTopic = "source_topic"
-  val avroData = new AvroData(4)
 
   "JsonSimpleConverter" should {
     "convert from json to the struct" in {
@@ -39,17 +37,19 @@ class JsonSimpleConverterTest extends AnyWordSpec with Matchers {
       record.keySchema() shouldBe MsgKey.schema
       record.key() shouldBe MsgKey.getStruct(sourceTopic, "100")
 
-      val schema = new Schema.Parser().parse(
-        SchemaFor[Car]().toString
-          .replace("\"name\":\"Car\"", s"""\"name\":\"$sourceTopic\"""")
-          .replace(s"""\"namespace\":\"${getClass.getCanonicalName.dropRight(getClass.getSimpleName.length+1)}\",""", "")
-      )
-      val format = RecordFormat[Car]
-      val avro = format.to(car)
+      record.valueSchema().fields().asScala.count(f => f.name() == "name") shouldBe 1
+      record.valueSchema().fields().asScala.count(f => f.name() == "manufacturer") shouldBe 1
+      record.valueSchema().fields().asScala.count(f => f.name() == "model") shouldBe 1
+      record.valueSchema().fields().asScala.count(f => f.name() == "bhp") shouldBe 1
+      record.valueSchema().fields().asScala.count(f => f.name() == "price") shouldBe 1
 
-      record.valueSchema() shouldBe avroData.toConnectSchema(schema)
+      val struct = record.value().asInstanceOf[Struct]
+      struct.get("name") shouldBe "LaFerrari"
+      struct.get("manufacturer") shouldBe "Ferrari"
+      struct.get("model") shouldBe 2015
+      struct.get("bhp") shouldBe 963
+      struct.get("price") shouldBe 0.0001
 
-      record.value() shouldBe avroData.toConnectData(schema, avro).value()
       record.sourcePartition() shouldBe Collections.singletonMap(Converter.TopicKey, sourceTopic)
       record.sourceOffset() shouldBe null
     }

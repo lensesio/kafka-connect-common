@@ -1,67 +1,36 @@
 package com.datamountaineer.streamreactor.connect.schemas
 
-import java.util
-
-import com.datamountaineer.streamreactor.connect.converters.sink.SinkRecordToJson.{convertSchemalessJson, convertStringSchemaAndJson}
+import com.datamountaineer.streamreactor.connect.converters.sink.SinkRecordToJson.{
+  connectSchemaTypeToSchema,
+  convertFromStringAsJson
+}
+import com.datamountaineer.streamreactor.connect.converters.source.JsonSimpleConverter
 import com.datamountaineer.streamreactor.connect.schemas.StructHelper.StructExtension
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.typesafe.scalalogging.StrictLogging
-import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
+import org.apache.kafka.connect.data.{
+  ConnectSchema,
+  Schema,
+  SchemaBuilder,
+  Struct
+}
 import org.apache.kafka.connect.errors.ConnectException
 import org.apache.kafka.connect.header.ConnectHeaders
 import org.apache.kafka.connect.sink.SinkRecord
-import org.json4s.JsonAST.JObject
 
 import scala.collection.JavaConverters._
+import scala.collection.convert.ImplicitConversions.`map AsScala`
+import scala.util.{Failure, Success, Try}
 
 object SinkRecordConverterHelper extends StrictLogging {
 
   implicit final class SinkRecordExtension(val record: SinkRecord)
       extends AnyVal {
 
-    private def structFromHeaders(headerFields: Map[String, String]): Struct = {
-
-      val extractHeaderFields =
-        if (headerFields.nonEmpty && headerFields.contains("*")) {
-          record
-            .headers()
-            .asScala
-            .filter(h => h.schema().`type`() == Schema.STRING_SCHEMA.`type`())
-            .map(h => (h.key() -> h.key()))
-            .toMap
-        } else {
-          headerFields
-        }
-
-      val schemaBuilder = SchemaBuilder.struct()
-
-      val headers =
-        record
-          .headers()
-          .iterator()
-          .asScala
-          // only take string headers and those in our list of fields
-          .filter(h =>
-            h.schema().`type`() == Schema.STRING_SCHEMA
-              .`type`() && extractHeaderFields.contains(h.key()))
-          //get the alias
-          .map(h => (extractHeaderFields(h.key()), h.value()))
-          .map {
-            case (name, value) =>
-              schemaBuilder.field(name, Schema.STRING_SCHEMA)
-              (name, value)
-          }
-          .toMap
-
-      val newStruct = new Struct(schemaBuilder.build())
-      headers.foreach { case (name, value) => newStruct.put(name, value) }
-      newStruct
-    }
-
-
     /**
-     * make new sink record, taking fields
-     * from the key, value and headers
-     * */
+      * make new sink record, taking fields
+      * from the key, value and headers
+      * */
     def newFilteredRecord(
         fields: Map[String, String],
         ignoreFields: Set[String] = Set.empty[String],
@@ -74,11 +43,10 @@ object SinkRecordConverterHelper extends StrictLogging {
       val keyStruct = if (keyFields.nonEmpty && record.key() != null) {
         extract(payload = record.key(),
                 payloadSchema = record.keySchema(),
-                key = true,
                 fields = keyFields,
                 ignoreFields = Set.empty)
       } else {
-        logger.warn(
+        logger.debug(
           s"Key is null for topic [${record.topic()}], partition [${record
             .kafkaPartition()}], offset [${record.kafkaOffset()}])")
         new Struct(SchemaBuilder.struct().build())
@@ -88,18 +56,32 @@ object SinkRecordConverterHelper extends StrictLogging {
       val valueStruct = if (fields.nonEmpty && record.value() != null) {
         extract(payload = record.value(),
                 payloadSchema = record.valueSchema(),
-                key = false,
                 fields = fields,
                 ignoreFields = ignoreFields)
       } else {
-        logger.warn(
+        logger.debug(
           s"Value is null for topic [${record.topic()}], partition [${record
             .kafkaPartition()}], offset [${record.kafkaOffset()}])")
         new Struct(SchemaBuilder.struct().build())
       }
 
+      //if we have headers fields and values extract
+      val headerStruct =
+        if (headerFields.nonEmpty && !record.headers().isEmpty) {
+          val headerAsSinkRecord = headerToSinkRecord(record)
+          extract(payload = headerAsSinkRecord.value(),
+                  payloadSchema = headerAsSinkRecord.valueSchema(),
+                  fields = headerFields,
+                  ignoreFields = Set.empty)
+        } else {
+          logger.debug(
+            s"Headers are empty for topic [${record.topic()}], partition [${record
+              .kafkaPartition()}], offset [${record.kafkaOffset()}])")
+          new Struct(SchemaBuilder.struct().build())
+        }
+
       //create a new struct with the keys, values and headers
-      val struct = keyStruct ++ valueStruct ++ structFromHeaders(headerFields)
+      val struct = keyStruct ++ valueStruct ++ headerStruct
 
       new SinkRecord(
         record.topic(),
@@ -115,33 +97,37 @@ object SinkRecordConverterHelper extends StrictLogging {
       )
     }
 
+    //convert headers to sink record
+    def headerToSinkRecord(record: SinkRecord): SinkRecord = {
+      val schemaBuilder = SchemaBuilder.struct()
+      val asScala = record.headers().asScala
+      asScala
+        .filterNot(h => h.schema() == null)
+        .foreach(h => schemaBuilder.field(h.key(), h.schema()))
+
+      val schema = schemaBuilder.build()
+      val newStruct = new Struct(schema)
+
+      asScala
+        .filterNot(h => h.schema() == null)
+        .foreach(h => newStruct.put(h.key(), h.value()))
+
+      new SinkRecord("header", 0, null, null, newStruct.schema(), newStruct, 0)
+    }
+
+    // create a new struct with the required fields
     private def extract(payload: Object,
                         payloadSchema: Schema,
-                        key: Boolean,
                         fields: Map[String, String],
                         ignoreFields: Set[String]): Struct = {
 
       if (payloadSchema == null) {
-        //json with no schema
-        val j: util.Map[String, Any] = convertSchemalessJson(
-          record = record,
-          fields = fields,
-          ignoreFields = ignoreFields,
-          key = key,
-          includeAllFields = fields.contains("*")
-        )
 
-        val newSchema = SchemaBuilder.struct()
-        j.asScala
-          .foreach {
-            case (name, value) => newSchema.field(name, Schema.STRING_SCHEMA)
-          }
-
-        val newStruct = new Struct(newSchema.build())
-        j.asScala.foreach {
-          case (name, value) => newStruct.put(name, value.toString)
-        }
-        newStruct
+        val struct = toStructFromJson(payload)
+        // converted so now reduce the schema
+        struct.reduceSchema(schema = struct.schema(),
+                            fields = fields,
+                            ignoreFields = ignoreFields)
 
       } else {
         payloadSchema.`type`() match {
@@ -149,37 +135,69 @@ object SinkRecordConverterHelper extends StrictLogging {
           case Schema.Type.STRUCT =>
             payload
               .asInstanceOf[Struct]
-              .reduceToSchema(schema = payloadSchema,
-                              fields = fields,
-                              ignoreFields = ignoreFields)
+              .reduceSchema(schema = payloadSchema,
+                            fields = fields,
+                            ignoreFields = ignoreFields)
 
           // json with string schema
           case Schema.Type.STRING =>
-            val j = convertStringSchemaAndJson(record = record,
-                                               fields = fields,
-                                               ignoreFields = ignoreFields,
-                                               key = key,
-                                               includeAllFields =
-                                                 fields.contains("*"))
-
-            val newSchema = SchemaBuilder.struct()
-            val jFields = j.asInstanceOf[JObject].values
-            jFields.foreach {
-              case (name, value) =>
-                // default to string
-                newSchema.field(name, Schema.STRING_SCHEMA)
-            }
-            val newStruct = new Struct(newSchema.build())
-            jFields.foreach {
-              case (name, value) =>
-                newStruct.put(name, value.toString)
-            }
-            newStruct
+            val struct = toStructFromStringAndJson(payload, payloadSchema, "")
+            struct.reduceSchema(schema = struct.schema(),
+                                fields = fields,
+                                ignoreFields)
 
           case other =>
             throw new ConnectException(
-              s"$other schema is not supported for extracting fields")
+              s"[$other] schema is not supported for extracting fields for topic [${record
+                .topic()}], partition [${record
+                .kafkaPartition()}], offset [${record.kafkaOffset()}]")
         }
+      }
+    }
+
+    //handle json no schema
+    private def toStructFromJson(payload: Object): Struct = {
+      Try(payload.asInstanceOf[java.util.HashMap[String, Any]]) match {
+        case Success(map) =>
+          convert(new ObjectMapper().writeValueAsString(payload))
+
+        case Failure(_) =>
+          throw new ConnectException(s"[${payload.getClass}] is not valid. Expecting a Map[String, Any] for topic [${record
+            .topic()}], partition [${record.kafkaPartition()}], offset [${record.kafkaOffset()}]")
+      }
+    }
+
+    //handle json with string schema
+    private def toStructFromStringAndJson(payload: Object,
+                                          payloadSchema: Schema,
+                                          name: String): Struct = {
+
+      val expectedInput = payloadSchema != null && payloadSchema
+        .`type`() == Schema.STRING_SCHEMA.`type`()
+      if (!expectedInput) {
+        throw new ConnectException(
+          s"[$payload] is not handled. Expecting Schema.String")
+      } else {
+        payload match {
+          case s: String => convert(s)
+          case other =>
+            throw new ConnectException(
+              s"[${other.getClass}] is not valid. Expecting a Struct")
+        }
+      }
+    }
+
+    private def convert(json: String): Struct = {
+      val schemaAndValue = JsonSimpleConverter.convert("", json)
+      schemaAndValue.schema().`type`() match {
+        case Schema.Type.STRUCT =>
+          schemaAndValue.value().asInstanceOf[Struct]
+
+        case other =>
+          throw new ConnectException(
+            s"[$other] schema is not supported for extracting fields for topic [${record
+              .topic()}], partition [${record
+              .kafkaPartition()}], offset [${record.kafkaOffset()}]")
       }
     }
   }
