@@ -33,7 +33,7 @@ class JsonSimpleConverter extends Converter {
                        keys:Seq[String] = Seq.empty,
                        keyDelimiter:String = ".",
                        properties: Map[String, String] = Map.empty): SourceRecord = {
-    require(bytes != null, s"Invalid $bytes parameter")
+    require(bytes != null, s"Invalid [$bytes] parameter")
     val json = new String(bytes, Charset.defaultCharset)
     val schemaAndValue = JsonSimpleConverter.convert(sourceTopic, json)
     val value = schemaAndValue.value()

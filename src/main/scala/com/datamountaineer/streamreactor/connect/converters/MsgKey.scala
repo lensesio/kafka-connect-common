@@ -26,5 +26,5 @@ object MsgKey {
   private val avroData = new AvroData(1)
   val schema = avroData.toConnectSchema(avroSchema)
 
-  def getStruct(topic: String, id: String) = avroData.toConnectData(avroSchema, recordFormat.to(MsgKey(topic, id))).value()
+  def getStruct(topic: String, id: String): AnyRef = avroData.toConnectData(avroSchema, recordFormat.to(MsgKey(topic, id))).value()
 }

@@ -141,7 +141,7 @@ trait ConverterUtil {
 
     val schema = if (key) record.keySchema() else record.valueSchema()
     val expectedInput = schema != null && schema.`type`() == Schema.STRING_SCHEMA.`type`()
-    if (!expectedInput) Left(s"$schema is not handled. Expecting Schema.String")
+    if (!expectedInput) Left(s"[$schema] is not handled. Expecting Schema.String")
     else {
       (if (key) record.key() else record.value()) match {
         case s: String =>
@@ -174,7 +174,7 @@ trait ConverterUtil {
                   }
                 }
               Right(ConversionResult(json, converted))
-            case Failure(_) => Left(s"Invalid json with the record on topic ${record.topic} and offset ${record.kafkaOffset()}")
+            case Failure(_) => Left(s"Invalid json with the record on topic [${record.topic}], partition [${record.kafkaPartition()}] and offset [${record.kafkaOffset()}]")
           }
         case other => Left(s"${other.getClass} is not valid. Expecting a Struct")
       }
@@ -225,7 +225,7 @@ trait ConverterUtil {
 
         case other =>
           new ConnectException(
-            s"${other.getClass} is not valid. Expecting a Struct.")
+            s"[${other.getClass}] is not valid. Expecting a Struct.")
           record
       }
     }

@@ -26,7 +26,7 @@ import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 object AvroSerializer {
   def write[T <: Product](t: T)(implicit os: OutputStream, formatter: RecordFormat[T], schemaFor: SchemaFor[T]): Unit = write(apply(t), schemaFor())
 
-  def write(record: GenericRecord, schema: Schema)(implicit os: OutputStream) = {
+  def write(record: GenericRecord, schema: Schema)(implicit os: OutputStream): Unit = {
     val writer = new GenericDatumWriter[GenericRecord](schema)
     val encoder = EncoderFactory.get().binaryEncoder(os, null)
 

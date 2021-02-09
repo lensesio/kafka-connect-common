@@ -86,7 +86,7 @@ object AvroConverter {
   val SCHEMA_CONFIG = "connect.converter.avro.schemas"
 
   def getSchemas(config: Map[String, String]): Map[String, AvroSchema] = {
-    config.getOrElse(SCHEMA_CONFIG, throw new ConfigException(s"$SCHEMA_CONFIG is not provided"))
+    config.getOrElse(SCHEMA_CONFIG, throw new ConfigException(s"[$SCHEMA_CONFIG] is not provided"))
       .toString
       .split(';')
       .filter(_.trim.nonEmpty)
@@ -95,14 +95,14 @@ object AvroConverter {
         case Array(sink, path) =>
           val file = new File(path)
           if (!file.exists()) {
-            throw new ConfigException(s"Invalid $SCHEMA_CONFIG. The file $path doesn't exist!")
+            throw new ConfigException(s"Invalid [$SCHEMA_CONFIG]. The file [$path] doesn't exist!")
           }
           val s = sink.trim.toLowerCase()
           if (s.isEmpty) {
-            throw new ConfigException(s"Invalid $SCHEMA_CONFIG. The topic is not valid for entry containing $path")
+            throw new ConfigException(s"Invalid [$SCHEMA_CONFIG]. The topic is not valid for entry containing [$path]")
           }
           s -> new AvroSchema.Parser().parse(file)
-        case other => throw new ConfigException(s"$SCHEMA_CONFIG is not properly set. The format is Mqtt_Sink->AVRO_FILE")
+        case other => throw new ConfigException(s"[$SCHEMA_CONFIG] is not properly set. The format is Mqtt_Sink->AVRO_FILE")
       }.toMap
   }
 }

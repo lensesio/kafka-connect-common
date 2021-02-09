@@ -90,13 +90,13 @@ case class StringStructFieldsStringKeyBuilder(keys: Seq[String],
 
     val availableFields = schema.fields().asScala.map(_.name).toSet
     val missingKeys = keys.filterNot(availableFields.contains)
-    require(missingKeys.isEmpty, s"${missingKeys.mkString(",")} keys are not present in the SinkRecord payload:${availableFields.mkString(",")}")
+    require(missingKeys.isEmpty, s"[${missingKeys.mkString(",")}] keys are not present in the SinkRecord payload: [${availableFields.mkString(",")}]")
 
     keys.flatMap { case key =>
       val field = schema.field(key)
       val value = struct.get(field)
 
-      require(value != null, s"$key field value is null. Non null value is required for the fileds creating the Hbase row key")
+      require(value != null, s"[$key] field value is null. Non null value is required for the fields creating the Hbase row key")
       if (availableSchemaTypes.contains(field.schema().`type`())) Some(value.toString)
       else None
     }.mkString(keyDelimiter)

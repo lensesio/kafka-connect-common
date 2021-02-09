@@ -27,14 +27,14 @@ import com.typesafe.scalalogging.StrictLogging
 class ExponentialBackOffHandler(name: String, step: Duration, cap: Duration) extends StrictLogging  {
   private var backoff = new ExponentialBackOff(step, cap)
 
-  def ready = backoff.passed
+  def ready: Boolean = backoff.passed
 
-  def failure = {
+  def failure: Unit = {
     backoff = backoff.nextFailure
     logger.info(s"$name: Next poll will be around ${backoff.endTime}")
   }
 
-  def success = {
+  def success: Unit = {
     backoff = backoff.nextSuccess
     logger.info(s"$name: Backing off. Next poll will be around ${backoff.endTime}")
   }
@@ -47,5 +47,5 @@ class ExponentialBackOffHandler(name: String, step: Duration, cap: Duration) ext
     }
   }
 
-  def remaining = backoff.remaining
+  def remaining: Duration = backoff.remaining
 }

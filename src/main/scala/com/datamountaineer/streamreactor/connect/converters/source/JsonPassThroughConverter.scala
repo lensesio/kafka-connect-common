@@ -30,7 +30,7 @@ class JsonPassThroughConverter extends Converter {
                        keys: Seq[String] = Seq.empty,
                        keyDelimiter: String = ".",
                        properties: Map[String, String] = Map.empty): SourceRecord = {
-    require(bytes != null, s"Invalid $bytes parameter")
+    require(bytes != null, s"Invalid [$bytes] parameter")
 
     val json = new String(bytes, "utf-8")
     val jsonNode = JacksonJson.asJson(json)
