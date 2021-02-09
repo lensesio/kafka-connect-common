@@ -81,6 +81,7 @@ object StructHelper {
       output
     }
 
+    // Reduce a schema to the fields specified
     def reduceSchema(schema: Schema,
                      fields: Map[String, String],
                      ignoreFields: Set[String]): Struct = {

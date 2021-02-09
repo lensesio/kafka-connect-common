@@ -49,7 +49,7 @@ object ErrorPolicy extends StrictLogging {
 
 case class NoopErrorPolicy() extends ErrorPolicy {
   override def handle(error: Throwable, sink: Boolean = true, retryCount: Int = 0){
-    logger.warn(s"Error policy NOOP: ${error.getMessage}. Processing continuing.")
+    logger.warn(s"Error policy NOOP: [${error.getMessage}]. Processing continuing.")
   }
 }
 
@@ -66,7 +66,7 @@ case class RetryErrorPolicy() extends ErrorPolicy {
       throw new RuntimeException(error)
     }
     else {
-      logger.warn(s"Error policy set to RETRY. Remaining attempts $retryCount")
+      logger.warn(s"Error policy set to RETRY. Remaining attempts [$retryCount]")
       throw new RetriableException(error)
     }
   }

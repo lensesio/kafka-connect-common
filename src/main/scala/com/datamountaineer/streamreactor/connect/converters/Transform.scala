@@ -52,7 +52,7 @@ object Transform extends StrictLogging {
             val array = value match {
               case a: Array[Byte] => a
               case b: ByteBuffer => b.array()
-              case other => raiseException("Invalid payload:$other for schema Schema.BYTES.", null)
+              case other => raiseException(s"Invalid payload: [$other] for schema Schema.BYTES.", null)
             }
 
             Try(JacksonJson.mapper.readTree(array)) match {
@@ -71,7 +71,7 @@ object Transform extends StrictLogging {
               case Success(json) =>
                 Try(json.sql(fields, !withStructure)) match {
                   case Success(jn) => jn.toString
-                  case Failure(e) => raiseException(s"A KCQL exception occurred.${e.getMessage}", e)
+                  case Failure(e) => raiseException(s"A KCQL exception occurred. ${e.getMessage}", e)
                 }
             }
 
@@ -81,10 +81,10 @@ object Transform extends StrictLogging {
               case Success(s) =>
                 simpleJsonConverter.fromConnectData(s.schema(), s).toString
 
-              case Failure(e) => raiseException(s"A KCQL error occurred.${e.getMessage}", e)
+              case Failure(e) => raiseException(s"A KCQL error occurred. ${e.getMessage}", e)
             }
 
-          case other => raiseException("Can't transform Schema type:$other.", null)
+          case other => raiseException(s"Can't transform Schema type: [$other].", null)
         }
       } else {
         //we can handle java.util.Map (this is what JsonConverter can spit out)
@@ -94,7 +94,7 @@ object Transform extends StrictLogging {
             val jsonNode: JsonNode = JacksonJson.mapper.valueToTree(map)
             Try(jsonNode.sql(fields, !withStructure)) match {
               case Success(j) => j.toString
-              case Failure(e) => raiseException(s"A KCQL exception occurred.${e.getMessage}", e)
+              case Failure(e) => raiseException(s"A KCQL exception occurred. ${e.getMessage}", e)
             }
           case s: String =>
             Try(JacksonJson.asJson(value.asInstanceOf[String])) match {
@@ -102,7 +102,7 @@ object Transform extends StrictLogging {
               case Success(json) =>
                 Try(json.sql(fields, !withStructure)) match {
                   case Success(jn) => jn.toString
-                  case Failure(e) => raiseException(s"A KCQL exception occurred.${e.getMessage}", e)
+                  case Failure(e) => raiseException(s"A KCQL exception occurred. ${e.getMessage}", e)
                 }
             }
 
@@ -116,7 +116,7 @@ object Transform extends StrictLogging {
                 }
             }
           //we take it as String
-          case other => raiseException(s"Value:$other is not handled!", null)
+          case other => raiseException(s"Value: [$other] is not handled!", null)
         }
       }
     }

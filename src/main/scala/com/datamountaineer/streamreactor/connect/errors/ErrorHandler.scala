@@ -50,7 +50,7 @@ trait ErrorHandler extends StrictLogging {
       case Success(s) => {
         //success, check if we had previous errors.
         if (errorTracker.get.retries != errorTracker.get.maxRetries) {
-          logger.info(s"Recovered from error ${errorTracker.get.lastErrorMessage} at " +
+          logger.info(s"Recovered from error [${errorTracker.get.lastErrorMessage}] at " +
             s"${dateFormatter.format(errorTracker.get.lastErrorTimestamp)}")
         }
         //cleared error
@@ -59,7 +59,7 @@ trait ErrorHandler extends StrictLogging {
       }
       case Failure(f) =>
         //decrement the retry count
-        logger.error(s"Encountered error ${f.getMessage}", f)
+        logger.error(s"Encountered error [${f.getMessage}]", f)
         this.errorTracker = Some(decrementErrorTracker(errorTracker.get, f.getMessage))
         handleError(f, errorTracker.get.retries, errorTracker.get.policy)
         None

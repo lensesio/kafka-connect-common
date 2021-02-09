@@ -48,7 +48,7 @@ class AvroConverter extends Converter {
           avroData.toConnectSchema(sourceToSchemaMap(sourceTopic)),
           null)
       case Some(_) =>
-        val reader = avroReadersMap.getOrElse(sourceTopic.toLowerCase, throw new ConfigException(s"Invalid ${AvroConverter.SCHEMA_CONFIG} is not configured for $sourceTopic"))
+        val reader = avroReadersMap.getOrElse(sourceTopic.toLowerCase, throw new ConfigException(s"Invalid [${AvroConverter.SCHEMA_CONFIG}] is not configured for [$sourceTopic]"))
         val decoder = DecoderFactory.get().binaryDecoder(bytes, null)
         val record = reader.read(null, decoder)
         val schemaAndValue = avroData.toConnectData(sourceToSchemaMap(sourceTopic.toLowerCase), record)
@@ -92,7 +92,7 @@ object AvroConverter {
   val SCHEMA_CONFIG = "connect.source.converter.avro.schemas"
 
   def getSchemas(config: Map[String, String]): Map[String, AvroSchema] = {
-    config.getOrElse(SCHEMA_CONFIG, throw new ConfigException(s"$SCHEMA_CONFIG is not provided"))
+    config.getOrElse(SCHEMA_CONFIG, throw new ConfigException(s"[$SCHEMA_CONFIG] is not provided"))
       .toString
       .split(';')
       .filter(_.trim.nonEmpty)
@@ -101,14 +101,14 @@ object AvroConverter {
         case Array(source, path) =>
           val file = new File(path)
           if (!file.exists()) {
-            throw new ConfigException(s"Invalid $SCHEMA_CONFIG. The file $path doesn't exist!")
+            throw new ConfigException(s"Invalid [$SCHEMA_CONFIG]. The file [$path] doesn't exist!")
           }
           val s = source.trim.toLowerCase()
           if (s.isEmpty) {
-            throw new ConfigException(s"Invalid $SCHEMA_CONFIG. The topic is not valid for entry containing $path")
+            throw new ConfigException(s"Invalid [$SCHEMA_CONFIG]. The topic is not valid for entry containing [$path]")
           }
           s -> new AvroSchema.Parser().parse(file)
-        case other => throw new ConfigException(s"$SCHEMA_CONFIG is not properly set. The format is Mqtt_Source->AVRO_FILE")
+        case other => throw new ConfigException(s"[$SCHEMA_CONFIG] is not properly set. The format is Mqtt_Source->AVRO_FILE")
       }.toMap
   }
 }

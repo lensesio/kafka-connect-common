@@ -45,7 +45,7 @@ object PayloadFields {
               field -> field
             case Seq(field, alias) =>
               field -> alias
-            case _ => throw new ConfigException(s"$c is not valid. Need to set the fields and mappings like: field1,field2,field3=alias3,[field4, field5=alias5]")
+            case _ => throw new ConfigException(s"[$c] is not valid. Need to set the fields and mappings like: field1,field2,field3=alias3,[field4, field5=alias5]")
           }
         }.toMap
 
